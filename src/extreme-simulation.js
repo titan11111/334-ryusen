@@ -1,6 +1,18 @@
 // RYUSEN EXTREME. Pure simulation; embedded by tools/update_extreme.py.
 // Distances and speed are game units, not measured white-water speeds.
 var RRHulls = Object.create(null);
+function RREaseOpeningRocks(rocks) {
+  const last=new Map();
+  return rocks.filter(rock=>{
+    const course=Pn.find(c=>rock.s>=c.start&&rock.s<c.start+2500);if(!course)return true;
+    const distance=rock.s-course.start;
+    if(distance<480||distance-(last.get(course.id)||0)<450)return false;
+    const side=(Math.floor(distance/450)%2)?1:-1;
+    rock.offset=side*Math.max(5.6,rt(rock.s)*.5-rock.r-1.1);last.set(course.id,distance);return true;
+  });
+}
+var RRRawRocks=Bh;Bh=function(){return RREaseOpeningRocks(RRRawRocks());};
+function RROpening(state){return state.race&&!state.practice&&state.time<30;}
 var RRBoostItems=[];
 function RRResetBoosts(courseId,start=0,practice=false) {
   RRBoostItems=[];if(practice)return;
@@ -95,6 +107,7 @@ function kh(n, e, input, rocks) {
   if (n.stamina <= 2) n.exhausted = true;
   if (n.stamina >= 28) n.exhausted = false;
   const active = !n.exhausted && n.stamina > 2;
+  const opening=RROpening(n);
   n.braking = !!input.brake && active;
   n.bracing = !!input.brace && active && !n.braking;
   n.boostCooldown=Math.max(0,(n.boostCooldown||0)-e);
@@ -119,15 +132,16 @@ function kh(n, e, input, rocks) {
     + (touring ? 0 : narrowing * 9 + slope * 6);
   const desired = n.braking ? Math.max(9, target * .35) : target*(n.boostTime>0?2:1);
   n.speed += (desired - n.speed) * Math.min(1, e * (n.braking ? 4.8 : 1.7));
-  if (flow.wave > .75 && n.waveImpact > .94 && n.time-(n.lastWave || -10)>1.5) {
+  const paddleSurf=opening&&flow.wave>.12&&(n.strokeThrust||0)>.05;
+  if ((flow.wave > .75||paddleSurf) && n.waveImpact > .94 && n.time-(n.lastWave || -10)>1.5) {
     n.lastWave=n.time; n.reaction=Math.max(n.reaction,.4);
-    if(n.bracing){n.surfCount=(n.surfCount||0)+1;n.surge=Math.min(7,(n.surge||0)+1.2);}
+    if(n.bracing||paddleSurf){n.surfCount=(n.surfCount||0)+1;n.surge=Math.min(7,(n.surge||0)+1.2);}
     else {n.speed*=.93;n.shake=Math.max(n.shake,.3);}
-    events.push({type:'wave',braced:n.bracing});
+    events.push({type:'wave',braced:n.bracing||paddleSurf,surf:n.bracing||paddleSurf});
   }
   const control = (n.bracing ? .38 : n.braking ? 1.5 : 1) * (touring ? 1 : 2.1);
   n.vx += (input.x * 13.5 * craft.turn * control
-    + (flow.lateral * (touring ? 1 : 1.5) - bend) / craft.stability - n.vx * 3.1) * e;
+    + (flow.lateral * (touring ? 1 : 1.5) - bend)*(opening?.35:1) / craft.stability - n.vx * 3.1) * e;
   n.offset += n.vx * e;
   n.s += n.speed * e;
   const bank=RRBankOverlap(n);
@@ -213,12 +227,14 @@ function kh(n, e, input, rocks) {
       point={x:rx+normal.x*rock.r,y:$e(rock.s)+.45,z:rz+normal.z*rock.r*1.2};
     }
     RRStopBoost(n);
-    const amount = base * (touring ? .28 : 1) * (n.bracing ? .27 : 1) * craft.damage;
+    const rawDamage = base * (touring ? .28 : 1) * (n.bracing ? .27 : 1) * craft.damage;
+    const cap=n.race&&!n.practice&&n.time<40?6+Math.max(0,n.time-30)*10:Infinity;
+    const amount=Math.min(rawDamage,cap);
     n.hp = Math.max(0, n.hp - amount); n.hits++; n.reaction = 1;
-    n.shake = Math.min(1.6, amount / 20); n.immunity = .65;
-    n.lastDamage = source; n.speed *= source==='rock'?(n.bracing?.8:.43):(n.bracing?.88:.57);
+    n.shake = Math.min(1.6, amount / 20); n.immunity = opening?1.1:.65;
+    n.lastDamage = source; n.speed *= opening?.78:source==='rock'?(n.bracing?.8:.43):(n.bracing?.88:.57);
     if(rock){
-      const resistance=(n.bracing?.45:1)/Math.sqrt(craft.stability);
+      const resistance=(n.bracing?.45:1)*(opening?.35:1)/Math.sqrt(craft.stability);
       n.vx+=side*(7+Math.min(130,impactSpeed)*.045)*resistance;
       n.offset+=side*.25*force*resistance;
       n.s=Math.max(n.race?(n.raceStartS??js(n.courseId).start):0,n.s-.7*force*resistance);

@@ -126,11 +126,24 @@ if '/* RR_RESPONSE_V63 */' not in html:
     replace('"ryusen-race-extreme-v6.2-"','"ryusen-race-extreme-v6.3-"')
 
 controller=ROOT/'src/titan-controller.js'
+if '/* RR_LANDSCAPE_V63 */' not in html:
+    replace('/* RR_RESPONSE_V63 */','/* RR_LANDSCAPE_V63 */\n/* RR_RESPONSE_V63 */')
+    replace('tg.className="rival-tag",tg.style.background', 'tg.className="rival-tag",tg.dataset.rescue="true",tg.style.background')
+if '/* RR_RACE_V64 */' not in html:
+    replace('/* RR_RESPONSE_V63 */','/* RR_RACE_V64 */\n/* RR_RESPONSE_V63 */')
+    replace('for(let P of L){if(P.type===','for(let P of L){RRRaceEvent(P);if(P.type===')
+    replace('U.bracing||(U.shake=Math.max(U.shake,.25))','(U.bracing||P.braced)||(U.shake=Math.max(U.shake,.25))')
+    replace('RRUpdateImpactVisuals(Mt?0:e),RRAnimateAllCrew()', 'RRUpdateRaceFeedback(Mt?0:e),RRUpdateImpactVisuals(Mt?0:e),RRAnimateAllCrew()')
+    replace('(U.race?65:58)+qn(c-12,0,13)*.6+g*5+(U.duel||0)*3+(U.boostTime>0?6:0)', '(U.race?RRRaceFOV(c,U.boostTime,g,U.duel||0):58+qn(c-12,0,13)*.6+g*5)')
+    replace(':57,.035),nn.updateProjectionMatrix()', ':57,1-Math.exp(-e*8)),nn.updateProjectionMatrix()')
+    replace('build:"6.3-impact-crew"','build:"6.4-race-flow"')
+    replace('"tg.334.race.extreme-v6.3."','"tg.334.race.extreme-v6.4."')
+    replace('"ryusen-race-extreme-v6.3-"','"ryusen-race-extreme-v6.4-"')
 html=html.replace('n.time-(n.lastStroke??-10)>.10','n.time-(n.lastStroke??-10)>=.10')
 if controller.exists():
     html=re.sub(r'(<script data-titan-controller="1">)[\s\S]*?(</script>)',lambda m:m[1]+'\n'+controller.read_text()+'\n'+m[2],html,count=1)
 embed('RR_SIM', 'src/extreme-simulation.js')
-embed('RR_RUNTIME', ['src/extreme-runtime.js','src/impact-feedback.js','src/boat-details.js','src/crew-details.js'])
+embed('RR_RUNTIME', ['src/extreme-runtime.js','src/impact-feedback.js','src/race-feedback.js','src/boat-details.js','src/crew-details.js'])
 embed('RR_STYLE', 'src/extreme-ui.css')
 path.write_text(html)
 print(f'Embedded extreme sources: {path.stat().st_size:,} bytes')

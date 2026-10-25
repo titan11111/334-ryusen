@@ -2,7 +2,7 @@ const {c,state,html}=require('./test_extreme.cjs');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),passed=[];
 function test(name,run){run();passed.push(name);console.log('PASS',name);}
-for(const source of ['impact-feedback.js','boat-details.js','crew-details.js'])vm.runInContext(fs.readFileSync(root+'/src/'+source,'utf8'),c);
+for(const source of ['impact-feedback.js','race-feedback.js','boat-details.js','crew-details.js'])vm.runInContext(fs.readFileSync(root+'/src/'+source,'utf8'),c);
 // Browser-independent rig math and the exact mesh builders from the shipping HTML.
 vm.runInContext(html.slice(html.indexOf('var ir='),html.indexOf('var uv=')),c);
 const elements=new Map();
@@ -44,10 +44,10 @@ test('cached joystick bounds avoid forced layout on repeated movement and reset 
   controller.destroy();
 });
 test('rock impacts generate contact coordinates, rearward displacement, yaw, and lateral knockback',()=>{
-  const n=state();n.speed=65;const old=n.s;
+  const n=state();n.time=45;n.speed=65;const old=n.s;
   const events=c.kh(n,1/60,{x:0},[{s:n.s+2,offset:.6,r:1.5}]),hit=events.find(e=>e.type==='impact');
   assert(hit.point&&hit.normal);assert(hit.impactSpeed>60);assert(n.vx<-4);assert(n.impactYaw>0);assert(n.knockback>0);assert(n.s<old+65/60);
-  const prepared=state();prepared.speed=65;
+  const prepared=state();prepared.time=45;prepared.speed=65;
   c.kh(prepared,1/60,{x:0,brace:true},[{s:prepared.s+2,offset:.6,r:1.5}]);assert(Math.abs(prepared.vx)<Math.abs(n.vx));
 });
 test('impact audio combines a sharp attack with a bounded non-silent tail',()=>{
@@ -108,3 +108,4 @@ test('legacy wood boat, captain, and all actual NPC builders retain valid crew p
   }
 });
 console.log(JSON.stringify({responseChecks:passed.length,cases:passed},null,2));
+module.exports={c,state,html};

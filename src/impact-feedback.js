@@ -1,7 +1,8 @@
 // Input feedback is dispatched by pointerdown; collision feedback uses the simulation contact point.
 var RRFx={ctx:null,buffers:new Map(),debris:null,rings:[],clock:0,flash:0,reduced:typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches,stats:{presses:0,impacts:0}};
 function RRSynthFeedback(kind,rate) {
-  const duration=kind==='impact'?.78:.045,values=new Float32Array(Math.ceil(duration*rate));
+  const pass=kind==='pass'||kind==='passback';
+  const duration=kind==='impact'?.78:pass?.28:.045,values=new Float32Array(Math.ceil(duration*rate));
   let seed=72931,low=0,peak=0;
   for(let i=0;i<values.length;i++){
     const t=i/rate;seed=(seed*1664525+1013904223)>>>0;
@@ -11,6 +12,7 @@ function RRSynthFeedback(kind,rate) {
       +Math.sin(Math.PI*2*(100*t-42*t*t))*Math.exp(-t*12)*.65
       +(Math.sin(t*1005)+Math.sin(t*1747)*.45)*Math.exp(-t*20)*.2
       +low*Math.exp(-t*4.8)*.9+(noise-low)*Math.exp(-t*6)*(1-Math.exp(-t*70))*.18;
+    else if(pass){const frequency=kind==='pass'?580:390,slope=kind==='pass'?1800:-650;v=Math.sin(Math.PI*2*(frequency*t+slope*t*t*.5))*.55*Math.exp(-t*9);}
     else {const frequency=kind==='act'?190:kind==='jump'?250:410;v=(Math.sin(t*frequency*Math.PI*2)*.65+noise*.24)*Math.exp(-t*115);}
     values[i]=v;peak=Math.max(peak,Math.abs(v));
   }
@@ -20,10 +22,11 @@ function RRSynthFeedback(kind,rate) {
 function RRPrimeFeedbackAudio() {
   if(typeof Pt==='undefined'||!Pt||RRFx.ctx===Pt.ctx)return;
   RRFx.ctx=Pt.ctx;RRFx.buffers.clear();
-  for(const kind of ['stroke','act','jump','impact']){
+  for(const kind of ['stroke','act','jump','impact','pass','passback']){
     const samples=RRSynthFeedback(kind,Pt.ctx.sampleRate),buffer=Pt.ctx.createBuffer(1,samples.length,Pt.ctx.sampleRate);
     buffer.copyToChannel(samples,0);RRFx.buffers.set(kind,buffer);
   }
+  RRInitWind();
 }
 function RRPlayFeedback(kind,volume=1,pan=0) {
   if(typeof _n==='undefined'||!_n||typeof Pt==='undefined'||!Pt)return;

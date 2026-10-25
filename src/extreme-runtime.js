@@ -35,7 +35,7 @@ function RRButtons() {
   }
   const pad=document.querySelector('[data-titan-pad]');
   pad.insertAdjacentHTML('beforeend','<span class="rr-pad-label">操船</span>');
-  document.body.insertAdjacentHTML('beforeend','<div id="rrDanger" role="status"><span id="rrKind"></span><b id="rrSeconds"></b><span id="rrAction"></span></div><div id="rrExpedition"></div><div id="rrBoostMeter"><b>ENGINE ×2</b><span></span><i></i></div>');
+  document.body.insertAdjacentHTML('beforeend','<div id="rrDanger" role="status"><span id="rrKind"></span><b id="rrSeconds"></b><span id="rrAction"></span></div><div id="rrExpedition"></div><div id="rrBoostMeter"><b>ENGINE ×2</b><span></span><i></i></div><div id="rrSpeedLines" aria-hidden="true"></div>');
 }
 function RRAction() {
   const all=new Set(RRC.pointers.values());
@@ -132,6 +132,7 @@ function RRUpdateHUD() {
   if(U.race&&active){
     const engine=RRBoostItems.find(i=>i.active&&i.s>U.s-8&&i.s<U.s+160);
     document.getElementById('hint').textContent=engine?'金色のエンジン：取ると2秒間×2 / Bで解除':Wn(U.s)?.hint||'';
+    if(RROpening(U))document.getElementById('hint').textContent=(U.combo||0)<6?'Aを長押し：まず連続6漕ぎ！':!(U.surfCount>0)?'波の山で漕ぎを重ねて波乗り！':'いい流れ！ 中央の広い水路から岩をかわせ';
   }
   const box=document.getElementById('rrDanger'), d=U.danger;
   box.style.display=active&&d?'flex':'none';

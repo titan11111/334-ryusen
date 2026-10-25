@@ -42,7 +42,7 @@ test('steady flow is at least three times the previous target',()=>{
   c.un=origFlow;c.bf=origSlope;c.ga=origRough;c.xf=origTech;c.rt=origWidth;
 });
 test('swept collision hits rocks crossed in a fast step',()=>{
-  const n=state();n.speed=180;
+  const n=state();n.time=45;n.speed=180;
   const rock={s:n.s+1.5,offset:0,r:1.2};c.kh(n,1/60,{x:0},[rock]);
   assert(n.hp<50);assert(rock.hit);assert.equal(n.lastDamage,'rock');
 });
@@ -64,7 +64,7 @@ test('physical widths distinguish kayak and raft without arbitrary forgiveness',
   c.Fe=old;
 });
 test('brace reduces collision damage and brake wins combined actions',()=>{
-  const a=state(),b=state();a.speed=b.speed=65;
+  const a=state(),b=state();a.time=b.time=45;a.speed=b.speed=65;
   c.kh(a,1/60,{x:0},[{s:a.s+1,offset:0,r:1.2}]);
   c.kh(b,1/60,{x:0,brace:true},[{s:b.s+1,offset:0,r:1.2}]);
   assert(b.hp>a.hp+25);
@@ -73,7 +73,7 @@ test('brace reduces collision damage and brake wins combined actions',()=>{
 });
 test('large unbraced landing is fatal; a prepared landing is survivable',()=>{
   const fall=c.Ln.filter(f=>f.height>=28).at(-1);
-  const a=state('iguazu'),b=state('iguazu');a.s=b.s=fall.end-.2;a.speed=b.speed=75;
+  const a=state('iguazu'),b=state('iguazu');a.time=b.time=45;a.s=b.s=fall.end-.2;a.speed=b.speed=75;
   c.kh(a,1/60,{x:0},[]);c.kh(b,1/60,{x:0,brace:true},[]);
   assert.equal(a.phase,'lost');assert.equal(b.phase,'playing');assert(b.hp>65);
 });
@@ -133,7 +133,7 @@ test('braking and impact cancel boosts immediately with no defensive bonus',()=>
   c.kh(n,1/120,{x:0,brake:true},[]);assert.equal(n.boostTime,0);assert(n.speed<65);
   const tired=state();tired.speed=130;tired.boostTime=2;tired.stamina=0;
   c.kh(tired,1/120,{x:0,brake:true},[]);assert.equal(tired.boostTime,0);
-  const hit=state();hit.speed=130;hit.boostTime=2;
+  const hit=state();hit.time=45;hit.speed=130;hit.boostTime=2;
   c.kh(hit,1/120,{x:0},[{s:hit.s+1,offset:0,r:1.2}]);assert.equal(hit.boostTime,0);assert(hit.hp<40);
 });
 test('full courses with engines remain challenging three-minute races',()=>{
