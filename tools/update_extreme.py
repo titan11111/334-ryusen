@@ -75,6 +75,9 @@ function RWwide(n){return n<12875?1:n<13100?1-.22*(n-12875)/225:n<24475?.78:n<24
     replace('Math.min(n,1),t=Math.min(e,.1)', 'Math.min(n,.1),t=Math.min(e,.1)')
     replace('Oh(z.s,5)', 'Oh(z.s,Math.max(12,z.speed*.65))')
     replace('Oh(U.s,48)', 'Oh(U.s,Math.max(48,U.speed*2.6))')
+    replace('Qf(),nc(),mn("3",1.1)', 'RRResetBoosts(n,r,t),Qf(),nc(),mn("3",1.1)')
+    replace('for(let P of L){if(P.type===', 'for(let P of L){if(P.type==="boost"){mn("加速エンジン！ 2秒だけ×2",1.2);hs(30,.8);_n&&Pt&&Pt.effect("perfect",1);}if(P.type===')
+    replace('g*5+(U.duel||0)*3:57','g*5+(U.duel||0)*3+(U.boostTime>0?6:0):57')
     a=html.index('function yf(');b=html.index('function Mf(',a)
     ai=html[a:b].replace('n.s+45','n.s+165').replace('Pi(n.s+20)','Pi(n.s+75)').replace('Pi(n.s+16)','Pi(n.s+65)').replace('E<38','E<140').replace('E/42','E/150')
     html=html[:a]+ai+html[b:]
@@ -84,11 +87,12 @@ function RWwide(n){return n<12875?1:n<13100?1-.22*(n-12875)/225:n<24475?.78:n<24
     replace('function mr(){ds=[],', 'function mr(){RRClear(),ds=[],')
     replace('function np(){j(', 'function np(){RRClear(),j(')
     replace('function cc(n=0){ds=[],', 'function cc(n=0){RRClear(),ds=[],')
+    replace('e&&(e.textContent="\\u6E1B\\u901F E"),','e&&e.setAttribute("aria-label","B 減速"),')
     # Every lookup returns an uncluttered warning; labels never conceal the boat.
-    replace('controller:"1.0.0",three:"180"', 'controller:"1.0.0+extreme-adapter",three:"180",speed:U.speed,course:U.courseId,danger:U.danger,lastDamage:U.lastDamage')
-    replace('build:"5.0"', 'build:"6.0-extreme"')
-    replace('"tg.334.race."', '"tg.334.race.extreme-v6."')
-    replace('localStorage.getItem("ryusen-race-v5-"+(U.practice?', 'localStorage.getItem("ryusen-race-extreme-v6-"+(U.practice?')
+    replace('controller:"1.0.0",three:"180"', 'controller:"1.0.0+extreme-adapter",three:"180",speed:U.speed,course:U.courseId,danger:U.danger,lastDamage:U.lastDamage,boostTime:U.boostTime||0,boostCount:U.boostCount||0,engines:RRBoostItems.map(i=>({s:Math.round(i.s),active:i.active,taken:i.taken}))')
+    replace('build:"5.0"', 'build:"6.2-engine"')
+    replace('"tg.334.race."', '"tg.334.race.extreme-v6.2."')
+    replace('localStorage.getItem("ryusen-race-v5-"+(U.practice?', 'localStorage.getItem("ryusen-race-extreme-v6.2-"+(U.practice?')
     replace('nn.position.set(16,8,35);ip();', '/* RR_RUNTIME_BEGIN */\n/* RR_RUNTIME_END */\nRRInitControls();RRDossier();nn.position.set(16,8,35);ip();')
     # Menu and labels.
     replace('</style>    <meta', '/* RR_STYLE_BEGIN */\n/* RR_STYLE_END */\n</style>    <meta')
@@ -98,7 +102,8 @@ function RWwide(n){return n<12875?1:n<13100?1-.22*(n-12875)/225:n<24475?.78:n<24
     replace('ゆったり川旅</button>', 'TOURING ×1</button>')
     replace('左右：操船　F：漕ぐ<br>E：減速　Space：踏ん張る', '十字キー：操船　A / Z：漕ぐ<br>B / X：減速　R / Space：踏ん張る')
     replace('<small>km/h</small>', '<small>km/h · ゲーム内速度</small>')
-    replace('<details class="race-notes">', '<details id="rrDossier"></details><details class="race-notes">')
+    replace('<span>「漕ぐ F」を押すと進む</span>', '<span>A：漕ぐ / B：減速 / R：踏ん張る</span>')
+    replace('<details class="race-notes">', '<p class="fiction-note">金色の加速エンジン：取ると2秒間×2。Bで解除、重ね取り不可。</p><details id="rrDossier"></details><details class="race-notes">')
     replace('6 BOATS / 3 × 3 MIN / 36 RAPID SECTIONS', 'EXTREME ×3.25 / 6 BOATS / 3 EXPEDITIONS')
     replace('緑の合図で「漕ぐ F」。連打は体力を浪費。', 'A / Z：漕ぐ。長押しでも前進。B / X：減速。')
     # Refresh dossier on course selection without depending on initialization order.

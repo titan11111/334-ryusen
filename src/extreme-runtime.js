@@ -1,5 +1,29 @@
 // Game-specific controller adapter. Titan Controller API 1 remains unchanged.
 var RRC = {keys:new Set(), pointers:new Map(), lastRepeat:-1, impulse:false};
+var RRBoostViews=[];
+function RRDrawBoosts() {
+  const playing=['playing','countdown'].includes(U.phase)&&!Mt&&U.race;
+  while(RRBoostViews.length<RRBoostItems.length){
+    const group=new Tt(),rotor=new Tt();
+    const gold=new Lt({color:'#eea43b',metalness:.5,roughness:.35});
+    const dark=new Lt({color:'#25383b',metalness:.6,roughness:.4});
+    const glow=new Lt({color:'#a5f8ed',emissive:'#43c8b6',emissiveIntensity:1.4});
+    group.add(new ut(new Mn(1.15,.72,1.45),gold));
+    for(const x of [-.67,.67]){const can=new ut(new ln(.23,.23,1.5,8),dark);can.rotation.x=Math.PI/2;can.position.x=x;group.add(can);}
+    const core=new ut(new Mn(.65,.36,.12),glow);core.position.set(0,.1,-.78);group.add(core);
+    rotor.position.z=.9;
+    rotor.add(new ut(new Mn(1.5,.14,.06),dark),new ut(new Mn(.14,1.5,.06),dark));group.add(rotor);
+    const halo=new ut(new Ki(1.25,.045,6,24),glow);halo.rotation.x=Math.PI/2;halo.position.y=-.6;group.add(halo);
+    Ft.add(group);RRBoostViews.push({group,rotor});
+  }
+  RRBoostViews.forEach((view,i)=>{
+    const item=RRBoostItems[i];view.group.visible=!!(playing&&item?.active&&!item.taken&&Math.abs(item.s-U.s)<300);
+    if(!view.group.visible)return;
+    view.group.position.set(Fe(item.s)+item.offset,$e(item.s)+dn(item.s,item.offset,pt)+.95+Math.sin(pt*3+i)*.12,-item.s);
+    view.group.rotation.set(Math.sin(pt*2+i)*.08,-Math.atan2(Fv(item.s),1)+Math.sin(pt+i)*.18,Math.cos(pt*2.4+i)*.1);
+    view.rotor.rotation.z=pt*8;
+  });
+}
 function RRClear() { RRC.keys.clear(); RRC.pointers.clear(); RRC.lastRepeat=-1;RRC.impulse=false; ds=[]; RRFeedback(); }
 function RRButtons() {
   const names = {stroke:['A','漕ぐ','Z / F'],act:['B','減速','X / E'],jump:['R','踏ん張る','SPACE']};
@@ -10,7 +34,7 @@ function RRButtons() {
   }
   const pad=document.querySelector('[data-titan-pad]');
   pad.insertAdjacentHTML('beforeend','<span class="rr-pad-label">操船</span>');
-  document.body.insertAdjacentHTML('beforeend','<div id="rrDanger" role="status"><span id="rrKind"></span><b id="rrSeconds"></b><span id="rrAction"></span></div><div id="rrExpedition"></div>');
+  document.body.insertAdjacentHTML('beforeend','<div id="rrDanger" role="status"><span id="rrKind"></span><b id="rrSeconds"></b><span id="rrAction"></span></div><div id="rrExpedition"></div><div id="rrBoostMeter"><b>ENGINE ×2</b><span></span><i></i></div>');
 }
 function RRAction() {
   const all=new Set(RRC.pointers.values());
@@ -38,6 +62,13 @@ function RRPress(name) {
   }
 }
 function RRInitControls() {
+  // Capture only hull geometry: paddles, passengers and decorative arms never enlarge it.
+  const deck=Jf.attributes.position;
+  RRRegisterHull('wood-player',Array.from({length:deck.count},(_,i)=>[deck.getX(i)*1.2,deck.getZ(i)*1.2]));
+  for(const [id,view] of iu){
+    const geometry=view.group.children[0].geometry.attributes.position;
+    RRRegisterHull(id,Array.from({length:geometry.count},(_,i)=>[geometry.getX(i)*1.2,geometry.getZ(i)*1.2]));
+  }
   RRButtons();
   const map={KeyF:'stroke',KeyZ:'stroke',KeyJ:'stroke',KeyE:'act',KeyX:'act',KeyK:'act',Space:'jump',KeyC:'jump'};
   addEventListener('keydown',ev=>{
@@ -79,7 +110,15 @@ function RRPulse(state,dt,input) {
   ds.shift();return true;
 }
 function RRUpdateHUD() {
+  RRDrawBoosts();
   const active=['playing','countdown'].includes(U.phase)&&!Mt;
+  const boost=document.getElementById('rrBoostMeter');
+  boost.style.display=active&&U.boostTime>0?'grid':'none';
+  if(U.boostTime>0){boost.querySelector('span').textContent=U.boostTime.toFixed(1)+'s · Bで解除';boost.querySelector('i').style.width=U.boostTime/2*100+'%';}
+  if(U.race&&active){
+    const engine=RRBoostItems.find(i=>i.active&&i.s>U.s-8&&i.s<U.s+160);
+    document.getElementById('hint').textContent=engine?'金色のエンジン：取ると2秒間×2 / Bで解除':Wn(U.s)?.hint||'';
+  }
   const box=document.getElementById('rrDanger'), d=U.danger;
   box.style.display=active&&d?'flex':'none';
   if(active&&d){

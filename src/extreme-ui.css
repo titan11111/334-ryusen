@@ -18,6 +18,8 @@
 #rrDanger{display:none;position:fixed;left:50%;top:15%;transform:translateX(-50%);z-index:15;gap:12px;align-items:center;background:#3d2b18ed;border:1px solid #e3b27b;border-radius:5px;padding:9px 15px;pointer-events:none;white-space:nowrap;font-size:12px;color:#ffe6b8}
 #rrDanger b{font:700 26px monospace}#rrDanger[data-urgent=true]{background:#7e2723ee;border-color:#ffad8f;color:#fff1cf}
 #rrExpedition{display:none;position:fixed;bottom:calc(25% + 9px);left:20px;z-index:12;font:9px monospace;letter-spacing:.12em;color:#ebc18d;pointer-events:none}
+#rrBoostMeter{display:none;position:fixed;right:20px;top:34%;z-index:16;gap:5px;width:155px;background:#123c3be8;border:1px solid #a0e8d0;padding:10px;font:10px monospace;color:#d9fff1;pointer-events:none}
+#rrBoostMeter b{font-size:16px;letter-spacing:.08em}#rrBoostMeter i{height:4px;background:#f0c568;display:block}
 #rrDossier{font-size:10px;line-height:1.9;color:#c1cec0;margin:14px 0;border-top:1px solid #71827570;padding-top:12px}
 #rrDossier summary{cursor:pointer;color:#e8d4a8}#rrDossier b{display:block;margin-top:10px;color:#eee6c7}#rrDossier p{margin:5px 0}
 @media(max-width:600px){
