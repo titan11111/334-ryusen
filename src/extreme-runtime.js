@@ -150,7 +150,7 @@ function RRUpdateHUD() {
 
 // Region-specific expedition dossier. Ceremonial dress is documented, never used as rafting PPE.
 var RRREGIONS={
-  sogi:{title:'JAPAN · 千畳岩と白い水脈',text:'鹿児島県伊佐市。実在の曽木の滝は幅210m・高さ12m。広い岩床、細く分かれる水脈、山の緑を景観へ反映。レース航路と追加の落差は創作。',culture:'衣装：船頭の作業着に救命胴衣。実在の観光川下りとは異なる架空競技。'},
+  sogi:{title:'蒼霧の滝 · 千畳岩と白い水脈',text:'蒼霧（あおぎり）の滝は架空の場所。九州の瀑布から着想した広い岩床、細く分かれる水脈、山の緑が特徴。地名、レース航路と落差は創作。',culture:'衣装：船頭の作業着に救命胴衣。実在の観光川下りとは異なる架空競技。'},
   zambezi:{title:'BATOKA · 玄武岩の峡谷',text:'ザンビア／ジンバブエ。ヴィクトリアの滝の下流にあるバトカ峡谷。黒い断崖、強い反転流、大きな立ち波が主役。滝本体を下る再現ではない。',culture:'文化：ロジのMusisi／SizibaとKuombokaはザンビア西部の文化。バトカ峡谷の一律の衣装とは扱わない。乗員はヘルメットと救命胴衣。'},
   iguazu:{title:'IGUAZÚ · 大西洋林と水煙',text:'アルゼンチン／ブラジル国境。玄武岩に広がる多数の滝と亜熱帯雨林。重なる瀑布、水煙、幅のある水路を景観へ反映。悪魔の喉笛の実航路ではない。',culture:'文化：グアラニーの故地。Ao Po’i／Ñandutíはパラグアイの織物文化として区別し、未検証の民族衣装名や全員共通の羽飾りは使わない。'}
 };
@@ -160,3 +160,4 @@ function RRDossier() {
   const el=document.getElementById('rrDossier');
   if(el)el.innerHTML='<summary>現地を知る · 景観と装い</summary><b>'+r.title+'</b><p>'+r.text+'</p><p>'+r.culture+'</p><p>速度はゲーム内演出値。計測地形・流体解析に基づく再現ではありません。</p>';
 }
+

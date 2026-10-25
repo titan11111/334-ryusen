@@ -1,6 +1,8 @@
 // RYUSEN EXTREME. Pure simulation; embedded by tools/update_extreme.py.
 // Distances and speed are game units, not measured white-water speeds.
 var RRHulls = Object.create(null);
+// A 1.2x effective hull capacity, displayed as the same familiar 0–100% meter.
+var RRDurabilityMultiplier = 1.2;
 function RREaseOpeningRocks(rocks) {
   const last=new Map();
   return rocks.filter(rock=>{
@@ -229,7 +231,7 @@ function kh(n, e, input, rocks) {
     RRStopBoost(n);
     const rawDamage = base * (touring ? .28 : 1) * (n.bracing ? .27 : 1) * craft.damage;
     const cap=n.race&&!n.practice&&n.time<40?6+Math.max(0,n.time-30)*10:Infinity;
-    const amount=Math.min(rawDamage,cap);
+    const amount=Math.min(rawDamage,cap)/RRDurabilityMultiplier;
     n.hp = Math.max(0, n.hp - amount); n.hits++; n.reaction = 1;
     n.shake = Math.min(1.6, amount / 20); n.immunity = opening?1.1:.65;
     n.lastDamage = source; n.speed *= opening?.78:source==='rock'?(n.bracing?.8:.43):(n.bracing?.88:.57);
@@ -271,3 +273,4 @@ function RRforecast(state, rocks) {
   }
   return best;
 }
+

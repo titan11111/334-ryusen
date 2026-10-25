@@ -125,6 +125,29 @@ if '/* RR_RESPONSE_V63 */' not in html:
     replace('"tg.334.race.extreme-v6.2."','"tg.334.race.extreme-v6.3."')
     replace('"ryusen-race-extreme-v6.2-"','"ryusen-race-extreme-v6.3-"')
 
+if '/* RR_QUALITY_V65 */' not in html:
+    replace('/* RR_RACE_V64 */','/* RR_QUALITY_V65 */\n/* RR_RACE_V64 */')
+    replace('canvas:$l,antialias:!wa','canvas:$l,antialias:!0')
+    replace('Xt.setPixelRatio(Math.min(devicePixelRatio,wa?1:1.7))','Xt.setPixelRatio(RRRenderPixelRatio(innerWidth,innerHeight,devicePixelRatio,wa))')
+    replace('setPixelRatio(e){this.pixelRatio=Math.min(e,1.1)}','setPixelRatio(e){this.pixelRatio=Math.min(e,1.5)}')
+    replace('Xt.setSize(innerWidth,h);nn.aspect=', 'Xt.setPixelRatio(RRRenderPixelRatio(innerWidth,h,devicePixelRatio,wa));Xt.setSize(innerWidth,h);nn.aspect=')
+    replace('bevelSegments:2,steps:1','bevelSegments:5,curveSegments:32,steps:1')
+    replace('new ea(new Bs(t),32,.13,5,!1)','new ea(new Bs(t),72,.13,10,!1)')
+    # Keep collision geometry at its exact original resolution. Only renderers opt into detail.
+    start=html.index('function dv(n)');end=html.index('function Df(',start)
+    coarse=html[start:end]
+    fine=coarse.replace('function dv(n){','function dv(n,detail=false){')
+    fine=fine.replace('s=36,','s=detail?64:36,radial=detail?16:8,longitudinal=detail?48:30,')
+    for old,new in [('m<36','m<s'),('m/36','m/s'),('(m+1)/36','(m+1)/s'),('_<8','_<radial'),('_/8','_/radial'),('(_+1)/8','(_+1)/radial'),('o<30','o<longitudinal'),('o/30','o/longitudinal'),('(o+1)/30','(o+1)/longitudinal'),('e.length/30','e.length/longitudinal'),('m<8','m<radial'),('m/8','m/radial'),('(m+1)/8','(m+1)/radial'),('m<4','m<radial/2'),('l<30','l<longitudinal'),('l/30','l/longitudinal'),('(l+1)/30','(l+1)/longitudinal'),('c+.16','c+4.8/longitudinal'),('g<8','g<radial'),('g/8','g/radial'),('(g+1)/8','(g+1)/radial')]:fine=fine.replace(old,new)
+    fine=fine.replace('.72+_*.045','detail?.92:.72+_*.045').replace('.73+m*.055','detail?.92:.73+m*.055').replace('.75+g*.04','detail?.92:.75+g*.04')
+    html=html[:start]+fine+html[end:]
+    replace('build:"6.4-race-flow"','build:"6.5-hull-quality"')
+
+# Fictional display name; retain course ID `sogi` for saved records and course routing.
+if '/* RR_LARGE_CONTROLS_V65 */' not in html:
+    replace('/* RR_QUALITY_V65 */','/* RR_LARGE_CONTROLS_V65 */\n/* RR_QUALITY_V65 */')
+    replace('const h=Math.max(1,Math.round(innerHeight*(play?0.75:1)));', 'const deck=play?document.querySelector("[data-titan-controls]").getBoundingClientRect().height:0;const h=Math.max(1,Math.round(innerHeight-deck));')
+html=html.replace('曽木','蒼霧').replace(r'\u66FD\u6728','蒼霧').replace('JAPAN / GRANITE','FICTIONAL / GRANITE')
 controller=ROOT/'src/titan-controller.js'
 if '/* RR_LANDSCAPE_V63 */' not in html:
     replace('/* RR_RESPONSE_V63 */','/* RR_LANDSCAPE_V63 */\n/* RR_RESPONSE_V63 */')
@@ -143,7 +166,8 @@ html=html.replace('n.time-(n.lastStroke??-10)>.10','n.time-(n.lastStroke??-10)>=
 if controller.exists():
     html=re.sub(r'(<script data-titan-controller="1">)[\s\S]*?(</script>)',lambda m:m[1]+'\n'+controller.read_text()+'\n'+m[2],html,count=1)
 embed('RR_SIM', 'src/extreme-simulation.js')
-embed('RR_RUNTIME', ['src/extreme-runtime.js','src/impact-feedback.js','src/race-feedback.js','src/boat-details.js','src/crew-details.js'])
+embed('RR_RUNTIME', ['src/extreme-runtime.js','src/visual-quality.js','src/impact-feedback.js','src/race-feedback.js','src/boat-details.js','src/crew-details.js'])
 embed('RR_STYLE', 'src/extreme-ui.css')
 path.write_text(html)
 print(f'Embedded extreme sources: {path.stat().st_size:,} bytes')
+

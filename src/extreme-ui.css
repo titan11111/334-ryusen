@@ -1,59 +1,72 @@
-/* Three actions with two primary thumb targets; bottom quarter is reserved for input. */
+/* Larger thumb targets reserve their own deck, including on short landscape screens. */
+:root{--rr-deck:max(25dvh,calc(184px + env(safe-area-inset-bottom)))}
 body.titan-visible,body.titan-visible #scene,body.titan-visible [data-titan-controls],body.titan-visible [data-titan-controls] *{touch-action:none!important;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;overscroll-behavior:none}
 [data-titan-action]>*,[data-titan-pad]>*{pointer-events:none}
 [data-titan-action]{-webkit-tap-highlight-color:transparent;will-change:transform;transition:none!important}
 [data-titan-action].rr-pressed{transform:translateY(4px) scale(.96)!important;filter:brightness(1.35)}
-#rrHitEdge{position:fixed;inset:0 0 25%;z-index:14;pointer-events:none;border:5px solid #ffe5bf99;box-shadow:inset 0 0 55px #d45c3680;opacity:0}
-#rrSpeedLines{position:fixed;inset:0 0 25%;z-index:7;pointer-events:none;opacity:0;overflow:hidden;mask-image:radial-gradient(ellipse,transparent 0 49%,#000 88%);-webkit-mask-image:radial-gradient(ellipse,transparent 0 49%,#000 88%)}
+#rrHitEdge{position:fixed;inset:0 0 var(--rr-deck);z-index:14;pointer-events:none;border:5px solid #ffe5bf99;box-shadow:inset 0 0 55px #d45c3680;opacity:0}
+#rrSpeedLines{position:fixed;inset:0 0 var(--rr-deck);z-index:7;pointer-events:none;opacity:0;overflow:hidden;mask-image:radial-gradient(ellipse,transparent 0 49%,#000 88%);-webkit-mask-image:radial-gradient(ellipse,transparent 0 49%,#000 88%)}
 #rrSpeedLines::before{content:'';position:absolute;inset:-12%;background:repeating-conic-gradient(from 8deg at 50% 50%,transparent 0deg 8deg,#dbfbffb0 8.1deg 8.3deg,transparent 8.5deg 12deg);animation:rr-rush .22s linear infinite}
 @keyframes rr-rush{from{transform:scale(1)}to{transform:scale(1.12)}}
 @media(prefers-reduced-motion:reduce){#rrSpeedLines{display:none!important}}
 @media(prefers-reduced-motion:reduce){#rrHitEdge{box-shadow:none;border-width:3px}[data-titan-action]{will-change:auto}}
-.titan-visible [data-titan-controls]{inset:75% 0 0!important;background:linear-gradient(#132c2e,#0b1c22);border-top:2px solid #52676b;opacity:1!important}
+.titan-visible [data-titan-controls]{inset:auto 0 0!important;height:var(--rr-deck)!important;background:linear-gradient(#132c2e,#0b1c22);border-top:2px solid #52676b;opacity:1!important}
 .titan-visible [data-titan-controls]>div:last-child{right:max(24px,env(safe-area-inset-right))!important;bottom:max(14px,env(safe-area-inset-bottom))!important;gap:14px!important;align-items:flex-end}
 [data-titan-action]{border-radius:50%!important;width:76px!important;height:76px!important;min-width:0!important;min-height:0!important;padding:7px!important;box-shadow:0 5px 0 #030d12, inset 0 2px 0 #ffffff30!important;transition:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 [data-titan-action] b{font:900 24px/1 monospace}
 [data-titan-action] span{font-size:10px}
 [data-titan-action] small{font:8px monospace;opacity:.65}
 [data-titan-action=act]{order:1;background:#735c40!important;margin-bottom:18px}
-[data-titan-action=stroke]{order:2;background:#a04335!important;border-color:#ec9e74!important;width:86px!important;height:86px!important}
-[data-titan-action=jump]{position:absolute;right:196px;bottom:52px;width:60px!important;height:60px!important;background:#344a61!important;border-radius:12px!important}
+[data-titan-action=stroke]{order:2;background:#a04335!important;border-color:#ec9e74!important;width:112px!important;height:112px!important}
+[data-titan-action=stroke] b{font-size:32px}
+[data-titan-action=stroke] span{font-size:13px}
+[data-titan-action=jump]{position:absolute;right:216px;bottom:52px;width:60px!important;height:60px!important;background:#344a61!important;border-radius:12px!important}
 [data-titan-action=jump] b{font-size:16px}
 [data-titan-action].rr-pressed{transform:translateY(4px) scale(.96)!important;box-shadow:0 1px 0 #030d12,inset 0 0 18px #fff7!important;background:#bd9050!important;border-color:#fff0ca!important}
-[data-titan-pad]{width:110px!important;height:110px!important;bottom:max(20px,env(safe-area-inset-bottom))!important;left:28px!important;border-radius:18px!important;background:linear-gradient(90deg,transparent 34%,#56676e 34%,#56676e 66%,transparent 66%),linear-gradient(transparent 34%,#56676e 34%,#56676e 66%,transparent 66%),#172329!important;border-color:#718b8a!important}
-[data-titan-pad]>div{left:34px!important;top:34px!important;border-radius:9px!important}
+[data-titan-pad]{width:152px!important;height:152px!important;bottom:max(20px,env(safe-area-inset-bottom))!important;left:max(20px,env(safe-area-inset-left))!important;border-radius:18px!important;background:linear-gradient(90deg,transparent 34%,#56676e 34%,#56676e 66%,transparent 66%),linear-gradient(transparent 34%,#56676e 34%,#56676e 66%,transparent 66%),#172329!important;border-color:#718b8a!important}
+[data-titan-pad]>div{width:52px!important;height:52px!important;left:50px!important;top:50px!important;border-radius:9px!important}
 .rr-pad-label{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;color:#b8c7c2;pointer-events:none}
-.titan-visible #skillHUD{bottom:calc(25% + 12px)!important;width:240px;padding:6px 10px}
-.titan-visible #hint{bottom:calc(25% + 106px)!important;font-size:10px;background:#092025b0;padding:5px 10px;width:auto;max-width:70%;border-radius:4px}
+.titan-visible #skillHUD{bottom:calc(var(--rr-deck) + 12px)!important;width:240px;padding:6px 10px}
+.titan-visible #hint{bottom:calc(var(--rr-deck) + 106px)!important;font-size:10px;background:#092025b0;padding:5px 10px;width:auto;max-width:70%;border-radius:4px}
 #rrDanger{display:none;position:fixed;left:50%;top:15%;transform:translateX(-50%);z-index:15;gap:12px;align-items:center;background:#3d2b18ed;border:1px solid #e3b27b;border-radius:5px;padding:9px 15px;pointer-events:none;white-space:nowrap;font-size:12px;color:#ffe6b8}
 #rrDanger b{font:700 26px monospace}#rrDanger[data-urgent=true]{background:#7e2723ee;border-color:#ffad8f;color:#fff1cf}
-#rrExpedition{display:none;position:fixed;bottom:calc(25% + 9px);left:20px;z-index:12;font:9px monospace;letter-spacing:.12em;color:#ebc18d;pointer-events:none}
+#rrExpedition{display:none;position:fixed;bottom:calc(var(--rr-deck) + 9px);left:20px;z-index:12;font:9px monospace;letter-spacing:.12em;color:#ebc18d;pointer-events:none}
 #rrBoostMeter{display:none;position:fixed;right:20px;top:34%;z-index:16;gap:5px;width:155px;background:#123c3be8;border:1px solid #a0e8d0;padding:10px;font:10px monospace;color:#d9fff1;pointer-events:none}
 #rrBoostMeter b{font-size:16px;letter-spacing:.08em}#rrBoostMeter i{height:4px;background:#f0c568;display:block}
 #rrDossier{font-size:10px;line-height:1.9;color:#c1cec0;margin:14px 0;border-top:1px solid #71827570;padding-top:12px}
 #rrDossier summary{cursor:pointer;color:#e8d4a8}#rrDossier b{display:block;margin-top:10px;color:#eee6c7}#rrDossier p{margin:5px 0}
 @media(max-width:600px){
- [data-titan-pad]{left:16px!important;width:92px!important;height:92px!important}
- [data-titan-pad]>div{left:25px!important;top:25px!important}
+ :root{--rr-deck:max(25dvh,calc(166px + env(safe-area-inset-bottom)))}
+ [data-titan-pad]{left:max(12px,env(safe-area-inset-left))!important;width:136px!important;height:136px!important}
+ [data-titan-pad]>div{width:48px!important;height:48px!important;left:44px!important;top:44px!important}
  .titan-visible [data-titan-controls]>div:last-child{right:14px!important;gap:10px!important}
  [data-titan-action]{width:66px!important;height:66px!important}
- [data-titan-action=stroke]{width:76px!important;height:76px!important}
- [data-titan-action=jump]{right:92px;bottom:91px;width:57px!important;height:48px!important}
+ [data-titan-action=stroke]{width:108px!important;height:108px!important}
+ [data-titan-action=jump]{right:118px;bottom:94px;width:56px!important;height:56px!important}
  [data-titan-action] small{display:none}
  #rrDanger{top:22%;gap:8px;padding:7px 10px;font-size:10px}#rrDanger b{font-size:22px}
- .titan-visible #hint{bottom:calc(25% + 98px)!important;max-width:90%;font-size:9px}
+ .titan-visible #hint{bottom:calc(var(--rr-deck) + 98px)!important;max-width:90%;font-size:9px}
  #rrExpedition{font-size:8px;left:12px}
 }
 @media(max-height:560px){
- [data-titan-pad]{height:64px!important;width:90px!important;bottom:12px!important}
- [data-titan-pad]>div{left:24px!important;top:11px!important}
- [data-titan-action],[data-titan-action=stroke]{width:60px!important;height:60px!important}
- [data-titan-action=jump]{right:162px;bottom:0;height:54px!important;width:64px!important}
+ :root{--rr-deck:max(25dvh,calc(114px + env(safe-area-inset-bottom)))}
+ [data-titan-pad]{height:104px!important;width:104px!important;bottom:max(5px,env(safe-area-inset-bottom))!important}
+ [data-titan-pad]>div{width:36px!important;height:36px!important;left:34px!important;top:34px!important}
+ [data-titan-action]{width:64px!important;height:64px!important}
+ [data-titan-action=stroke]{width:88px!important;height:88px!important}
+ [data-titan-action=jump]{right:190px;bottom:4px;height:56px!important;width:56px!important}
  [data-titan-action=act]{margin-bottom:0}[data-titan-action] small{display:none}
  .titan-visible [data-titan-controls]>div:last-child{bottom:10px!important}
  .titan-visible #skillHUD{left:auto;right:15px;transform:none;width:205px}
  .titan-visible #hint{display:none!important}#rrDanger{top:13%;padding:4px 10px}
  #rrDanger b{font-size:21px}
+}
+@media(max-width:340px) and (orientation:portrait){
+ [data-titan-pad]{width:120px!important;height:120px!important;left:8px!important}
+ [data-titan-pad]>div{width:44px!important;height:44px!important;left:38px!important;top:38px!important}
+ [data-titan-action=stroke]{width:96px!important;height:96px!important}
+ [data-titan-action=act]{width:56px!important;height:56px!important}
+ [data-titan-action=jump]{right:106px;bottom:88px;width:48px!important;height:48px!important}
 }
 /* Landscape phone: one top strip, critical warnings, and a clear playfield. */
 @media(orientation:landscape) and (max-height:600px){
@@ -83,9 +96,10 @@ body.titan-visible,body.titan-visible #scene,body.titan-visible [data-titan-cont
  body.titan-visible.rr-racing #kmh{font:600 21px/1 sans-serif}body.titan-visible.rr-racing #speed small{font-size:7px}
  body.titan-visible.rr-racing #section,body.titan-visible.rr-racing #dropStatus{display:none}
  body.titan-visible.rr-racing #rrDanger{top:47px;padding:3px 9px;gap:7px;font-size:9px;max-width:52%}body.titan-visible.rr-racing #rrDanger b{font-size:17px}
- body.titan-visible.rr-racing #caption{top:calc(75% - 33px)!important;left:50%!important;right:auto!important;transform:translateX(-50%);max-width:70%;width:max-content;font-size:11px!important;line-height:1.3;padding:4px 9px;background:#09232dc9;border-radius:4px;pointer-events:none}
+ body.titan-visible.rr-racing #caption{top:calc(100% - var(--rr-deck) - 33px)!important;left:50%!important;right:auto!important;transform:translateX(-50%);max-width:70%;width:max-content;font-size:11px!important;line-height:1.3;padding:4px 9px;background:#09232dc9;border-radius:4px;pointer-events:none}
  body.titan-visible.rr-racing #rivalLabels .rival-tag:not([data-rescue]){display:none!important}
  body.titan-visible.rr-racing #rivalLabels [data-rescue]{font-size:9px!important;padding:2px 4px}
  body.titan-visible.rr-racing #rrBoostMeter{top:78px;right:12px;width:126px;padding:6px;font-size:8px;gap:3px}body.titan-visible.rr-racing #rrBoostMeter b{font-size:12px}
  body.titan-visible.rr-racing .rr-pad-label{display:none}
 }
+

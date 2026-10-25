@@ -71,11 +71,13 @@ test('brace reduces collision damage and brake wins combined actions',()=>{
   const n=state();n.speed=65;n.brakeImpulse=true;c.kh(n,1/60,{x:0,brace:true,brake:true},[]);
   assert(n.braking&&!n.bracing);assert(n.speed<60);
 });
-test('large unbraced landing is fatal; a prepared landing is survivable',()=>{
+test('reinforced full hull survives one large landing; damaged hull still needs bracing',()=>{
   const fall=c.Ln.filter(f=>f.height>=28).at(-1);
   const a=state('iguazu'),b=state('iguazu');a.time=b.time=45;a.s=b.s=fall.end-.2;a.speed=b.speed=75;
   c.kh(a,1/60,{x:0},[]);c.kh(b,1/60,{x:0,brace:true},[]);
-  assert.equal(a.phase,'lost');assert.equal(b.phase,'playing');assert(b.hp>65);
+  assert.equal(a.phase,'playing');assert(a.hp<20);assert.equal(b.phase,'playing');assert(b.hp>65);
+  const damaged=state('iguazu');damaged.time=45;damaged.s=fall.end-.2;damaged.speed=75;damaged.hp=80;
+  c.kh(damaged,1/60,{x:0},[]);assert.equal(damaged.phase,'lost');
 });
 test('danger forecast gives direction and time before collision',()=>{
   const n=state();n.speed=65;
@@ -157,3 +159,4 @@ test('engine meshes initialize from the shipped Three.js classes',()=>{
 });
 console.log(JSON.stringify({passed:reports.length,cases:reports},null,2));
 module.exports={c,state,html};
+

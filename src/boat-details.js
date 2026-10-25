@@ -1,14 +1,26 @@
 // Cosmetic surfaces stay within the existing hull envelope; collision footprints do not grow.
-var RRBoatDetailCache=new WeakSet(),RRBoatMats=null,RRBoatBaseWh=null;
+var RRBoatDetailCache=new WeakSet(),RRBoatMats=null,RRBoatBaseWh=null,RRBoatGeometryCache=new Map();
 function RRBoatTexture(wood) {
-  const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
-  const ctx=canvas.getContext('2d'),image=ctx.createImageData(128,128);let seed=wood?173:941;
-  for(let y=0;y<128;y++)for(let x=0;x<128;x++){
+  const size=512,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d'),image=ctx.createImageData(size,size);let seed=wood?173:941;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
     seed=(seed*1664525+1013904223)>>>0;
-    const value=wood?132+Math.sin(x*.64+Math.sin(y*.035)*1.4)*18+(seed/4294967296-.5)*14:128+(seed/4294967296-.5)*28;
-    const i=(y*128+x)*4;image.data[i]=image.data[i+1]=image.data[i+2]=value;image.data[i+3]=255;
+    const u=x/4,v=y/4,noise=seed/4294967296-.5;
+    const value=wood?132+Math.sin(u*.64+Math.sin(v*.035)*1.4)*13+noise*5:128+Math.sin(x*Math.PI/2)*Math.sin(y*Math.PI/2)*3+noise*4;
+    const i=(y*size+x)*4;image.data[i]=image.data[i+1]=image.data[i+2]=value;image.data[i+3]=255;
   }
-  ctx.putImageData(image,0,0);const texture=new jt(canvas);texture.wrapS=texture.wrapT=1e3;texture.repeat.set(wood?3:5,wood?2:8);texture.needsUpdate=true;return texture;
+  ctx.putImageData(image,0,0);const texture=new jt(canvas);texture.wrapS=texture.wrapT=1e3;texture.repeat.set(wood?3:5,wood?2:8);
+  texture.anisotropy=typeof Xt!=='undefined'&&Xt.capabilities?Math.min(8,Xt.capabilities.getMaxAnisotropy()):1;
+  texture.needsUpdate=true;return texture;
+}
+function RRRefineBoatGeometry(id) {
+  if(RRBoatGeometryCache.has(id))return RRBoatGeometryCache.get(id);
+  const positions=[],colors=[];
+  for(const face of dv(id,true))for(let i=1;i<face.v.length-1;i++)for(const p of [face.v[0],face.v[i],face.v[i+1]]){
+    positions.push(...p);const color=new Ge('rgb('+face.c.map(Math.round).join(',')+')');colors.push(color.r,color.g,color.b);
+  }
+  const geometry=new ct();geometry.setAttribute('position',new qe(positions,3));geometry.setAttribute('color',new qe(colors,3));geometry.computeVertexNormals();
+  RRBoatGeometryCache.set(id,geometry);return geometry;
 }
 function RRBoatMaterials() {
   if(RRBoatMats)return RRBoatMats;
@@ -44,10 +56,12 @@ function RRDecorateBoat(group,id,legacy=false) {
   if(RRBoatDetailCache.has(group))return;RRBoatDetailCache.add(group);
   const mats=RRBoatMaterials(),spec=At(id),hull=group.children.find(m=>m.isMesh&&m.geometry?.attributes.position);
   if(hull){
+    // Renderer-only refinement: dv(id) and the saved hull faces still own collision/fallback geometry.
+    if(!legacy){const old=hull.geometry;hull.geometry=RRRefineBoatGeometry(id);old.dispose();}
     hull.material.roughness=id==='wood'||id==='canoe'?.38:id==='kayak'?.3:.52;hull.material.metalness=0;
     const geo=hull.geometry,p=geo.attributes.position,uvs=[];
     for(let i=0;i<p.count;i++)uvs.push(p.getX(i)/spec.width+.5,p.getZ(i)/spec.length+.5);
-    geo.setAttribute('uv',new qe(uvs,2));hull.material.bumpMap=id==='wood'||id==='canoe'?mats.wood:mats.fabric;hull.material.bumpScale=id==='wood'?.022:.008;hull.material.needsUpdate=true;
+    geo.setAttribute('uv',new qe(uvs,2));hull.material.bumpMap=id==='wood'||id==='canoe'?mats.wood:mats.fabric;hull.material.bumpScale=id==='wood'?.012:.004;hull.material.needsUpdate=true;
     if(!['wood','canoe'].includes(id))RRSmoothBoatHull(geo);
   }
   const trim=new Tt();
@@ -92,3 +106,4 @@ function RRInitBoatDetails() {
   RRDecorateBoat(ui,'wood',true);for(const [id,view] of iu)RRDecorateBoat(view.group,id);
   if(!RRBoatBaseWh){RRBoatBaseWh=Wh;Wh=function(id){const view=RRBoatBaseWh(id);RRDecorateBoat(view.group,id);return view;};}
 }
+

@@ -1,6 +1,6 @@
 // Fictional whitewater courses inspired by real places. All dimensions are game units.
 const RIVER_WORLDS = {
-  sogi: {name:'曽木の滝',en:'SOGI FALLS',country:'JAPAN · KAGOSHIMA',subtitle:'岩棚を読み、白い瀑布を抜ける。',
+  sogi: {name:'蒼霧の滝',en:'AOGIRI FALLS',country:'FICTIONAL · KYUSHU-INSPIRED',subtitle:'岩棚を読み、白い瀑布を抜ける。',
     width:25,bend:19,grade:1,dropScale:1,forest:0,sky:'#b6ccbc',fog:'#a4c4b7',sun:'#fff0c7',fogDensity:.0065,
     water:['#124c42','#419386'],stone:'#727f79',sections:['岩棚の入口','千畳岩の瀬','白絹の落差'],drops:[{s:385,start:370,end:398,h:5.4},{s:916,start:902,end:930,h:7.8}]},
   iguazu: {name:'イグアスの滝',en:'IGUAZU FALLS',country:'SOUTH AMERICA',subtitle:'緑の回廊。見上げるほどの水の壁。',
@@ -12,3 +12,4 @@ const RIVER_WORLDS = {
 };
 const courseKey = Object.hasOwn(RIVER_WORLDS,new URLSearchParams(location.search).get('course')) ? new URLSearchParams(location.search).get('course') : 'sogi';
 const CW=RIVER_WORLDS[courseKey];
+
