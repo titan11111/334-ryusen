@@ -102,7 +102,7 @@ function RWwide(n){return n<12875?1:n<13100?1-.22*(n-12875)/225:n<24475?.78:n<24
     replace('ゆったり川旅</button>', 'TOURING ×1</button>')
     replace('左右：操船　F：漕ぐ<br>E：減速　Space：踏ん張る', '十字キー：操船　A / Z：漕ぐ<br>B / X：減速　R / Space：踏ん張る')
     replace('<small>km/h</small>', '<small>km/h · ゲーム内速度</small>')
-    replace('<span>「漕ぐ F」を押すと進む</span>', '<span>A：漕ぐ / B：減速 / R：踏ん張る</span>')
+    replace('<span>「漕ぐ F」を押すと進む</span>', '<span>A：漕ぐ / B：減速</span>')
     replace('<details class="race-notes">', '<p class="fiction-note">金色の加速エンジン：取ると2秒間×2。Bで解除、重ね取り不可。</p><details id="rrDossier"></details><details class="race-notes">')
     replace('6 BOATS / 3 × 3 MIN / 36 RAPID SECTIONS', 'EXTREME ×3.25 / 6 BOATS / 3 EXPEDITIONS')
     replace('緑の合図で「漕ぐ F」。連打は体力を浪費。', 'A / Z：漕ぐ。長押しでも前進。B / X：減速。')
