@@ -25,6 +25,7 @@ function RRDecorateCrew(rig,id) {
     RRMergeBoatTrim(trim);person.face.add(trim);
     const brows=[-1,1].map(side=>{const b=new ut(new Mn(.054,.011,.012),palette.dark);b.position.set(side*.061,.075,-.147);person.face.add(b);return b;});
     return {person,brows,alien,temperament:.8+(code%5)*.1,phase:code*.71,
+      seat:person.g.position.clone(),lastState:0,boardedAt:-100,
       eyeScale:person.eyes.map(eye=>eye.scale.clone()),mouthScale:new D(person.mouth.scale.x,.018,person.mouth.scale.z),reaction:'cruise'};
   });
   let guideFace=null;
@@ -34,7 +35,19 @@ function RRDecorateCrew(rig,id) {
     guideFace=new Tt();for(const sign of [-1,1]){const eye=new ut(new wi(.017,7,5),palette.dark);eye.position.set(sign*.06,.025,-.146);guideFace.add(eye);}
     RRMergeBoatTrim(guideFace);guide.g.add(guideFace);
   }
-  const data={crew,guideFace,lastHits:0,lastDrops:0,lastRescues:0,until:0,reason:'cruise'};RRCrewCache.set(rig,data);return data;
+  const data={crew,guideFace,lastHits:0,lastDrops:0,lastRescues:0,until:0,reason:'cruise',lastTime:null,lastSpeed:0,pitch:{x:0,v:0},roll:{x:0,v:0}};RRCrewCache.set(rig,data);return data;
+}
+// Exact critically damped response: no integration explosion on slow frames.
+// This is procedural secondary motion, not captured animation data.
+function RRCrewSpring(spring,target,dt,frequency=7) {
+  const offset=spring.x-target,decay=Math.exp(-frequency*dt),j=spring.v+frequency*offset;
+  spring.x=target+(offset+j*dt)*decay;
+  spring.v=(spring.v-frequency*j*dt)*decay;
+  return spring.x;
+}
+function RRCrewManifest(state) {
+  return {vessel:state.vesselId,capacity:state.totalPassengers,
+    people:(state.pax||[]).map(person=>({id:person.id,seat:person.id,state:['aboard','overboard','rescue-team'][person.st]||'unknown'}))};
 }
 function RRCrewReaction(state,data,time) {
   const hits=state.hits||0,drops=state.landedDrops?.length||0,rescues=state.rescued||0;
@@ -55,17 +68,38 @@ function RRCrewReaction(state,data,time) {
   return 'cruise';
 }
 function RRAnimateCrew(rig,poses,state,time,id) {
-  const data=RRDecorateCrew(rig,id),reaction=RRCrewReaction(state,data,state.time||0);
+  const data=RRDecorateCrew(rig,id);
+  const clock=state.time||0,restart=data.lastTime===null||clock<data.lastTime;
+  const dt=restart?0:Math.max(0,Math.min(.25,clock-data.lastTime));
+  if(restart){data.pitch={x:0,v:0};data.roll={x:0,v:0};data.lastSpeed=state.speed||0;data.until=0;
+    if(data.lastTime!==null){data.lastHits=state.hits||0;data.lastDrops=state.landedDrops?.length||0;data.lastRescues=state.rescued||0;}}
+  const reaction=RRCrewReaction(state,data,clock);
+  const acceleration=dt>0?Math.max(-25,Math.min(25,((state.speed||0)-data.lastSpeed)/dt)):0;
+  const prepared=state.bracing?.28:1;
+  const pitchTarget=Math.max(-.14,Math.min(.14,(-acceleration*.003+(state.waveImpact||0)*.035)*prepared));
+  const rollTarget=Math.max(-.12,Math.min(.12,-(state.vx||0)*.012*prepared));
+  const pitch=RRCrewSpring(data.pitch,pitchTarget,dt),roll=RRCrewSpring(data.roll,rollTarget,dt);
+  data.lastTime=clock;data.lastSpeed=state.speed||0;
   if(data.guideFace){data.guideFace.position.copy(rig.guide.head.position);data.guideFace.rotation.y=rig.guide.head.rotation.y;}
   for(let index=0;index<data.crew.length;index++){
     const m=data.crew[index],p=m.person;
+    const person=state.pax?.[index];
+    // Preserve individual seats: losing passenger 0 must not hide passenger 9.
+    if(person){
+      if(!restart&&m.lastState===1&&person.st===0)m.boardedAt=clock;
+      if(restart)m.boardedAt=-100;
+      m.lastState=person.st;p.g.visible=person.st===0;
+    }
+    p.g.position.copy(m.seat);
+    const boardingAge=clock-m.boardedAt;
+    if(boardingAge>=0&&boardingAge<.8)p.g.position.y+=Math.sin(boardingAge/.8*Math.PI)*.12;
     if(!p.g.visible)continue;m.reaction=reaction;
     const shock=['impact','landing','fall'].includes(reaction),calm=['relief','celebrate'].includes(reaction);
     const wobble=Math.sin(time*5+m.phase)*m.temperament;
     const lean=reaction==='boost'?.10:reaction==='brake'?-.10:reaction==='brace'?-.07:reaction==='impact'?-.12*wobble:reaction==='paddle'?-.06:0;
     // Paddling crew retain grip alignment; larger whole-body motion is reserved for passengers.
-    p.g.rotation.x=id==='wood'?lean:lean*.22;
-    p.g.rotation.z=id==='wood'?(reaction==='vortex'?.1*Math.sin(time*7+m.phase):shock?.07*wobble:0):0;
+    p.g.rotation.x=id==='wood'?lean+pitch*m.temperament:lean*.22;
+    p.g.rotation.z=id==='wood'?roll*m.temperament+(reaction==='vortex'?.1*Math.sin(time*7+m.phase):shock?.07*wobble:0):0;
     const blink=!shock&&Math.sin(time*(1.1+(index%3)*.11)+m.phase)>.997;
     p.eyes.forEach((eye,i)=>{const base=m.eyeScale[i];eye.scale.set(base.x*(m.alien?1.28:1),base.y*(blink?.12:shock?1.24:calm?.7:1),base.z);});
     const mouth=shock?2.3+Math.abs(wobble):reaction==='boost'?1.8:reaction==='anticipate'?1.4:calm?.65:1;

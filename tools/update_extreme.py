@@ -125,6 +125,20 @@ if '/* RR_RESPONSE_V63 */' not in html:
     replace('"tg.334.race.extreme-v6.2."','"tg.334.race.extreme-v6.3."')
     replace('"ryusen-race-extreme-v6.2-"','"ryusen-race-extreme-v6.3-"')
 
+if '/* RR_MUSIC_V65 */' not in html:
+    replace('function au(n){', '/* RR_MUSIC_V65 */function au(n){')
+    replace('Pt.enable(_n);j("audioBtn")', 'Pt.enable(_n);RRMusicSync(true);j("audioBtn")')
+    replace('function cc(n=0){', 'function cc(n=0){RRMusicReset();')
+    replace('fitScene(),tp(),au(!0),mn(', 'fitScene(),tp(),au(RRMusicSoundEnabled()),mn(')
+    replace('function np(){', 'function np(){RRMusicReset();')
+    replace('Mt=!Mt,Ni.reset()', 'Mt=!Mt,RRMusicSync(true),Ni.reset()')
+    replace('function wv(){', 'function wv(){RRMusicSync();')
+    replace('function Tv(){', 'function Tv(){RRMusicSync();')
+    replace('RRResetBoosts(n,r,t),Qf(),nc()', 'RRResetBoosts(n,r,t),RRMusicSync(true),Qf(),nc()')
+
+if '/* RR_MUSIC_STATUS */' not in html:
+    replace('engines:RRBoostItems.map(i=>({s:Math.round(i.s),active:i.active,taken:i.taken}))','engines:RRBoostItems.map(i=>({s:Math.round(i.s),active:i.active,taken:i.taken})),music:RRMusicStatus() /* RR_MUSIC_STATUS */')
+
 if '/* RR_QUALITY_V65 */' not in html:
     replace('/* RR_RACE_V64 */','/* RR_QUALITY_V65 */\n/* RR_RACE_V64 */')
     replace('canvas:$l,antialias:!wa','canvas:$l,antialias:!0')
@@ -166,8 +180,67 @@ html=html.replace('n.time-(n.lastStroke??-10)>.10','n.time-(n.lastStroke??-10)>=
 if controller.exists():
     html=re.sub(r'(<script data-titan-controller="1">)[\s\S]*?(</script>)',lambda m:m[1]+'\n'+controller.read_text()+'\n'+m[2],html,count=1)
 embed('RR_SIM', 'src/extreme-simulation.js')
-embed('RR_RUNTIME', ['src/extreme-runtime.js','src/visual-quality.js','src/impact-feedback.js','src/race-feedback.js','src/boat-details.js','src/crew-details.js'])
-embed('RR_STYLE', 'src/extreme-ui.css')
-path.write_text(html)
+embed('RR_RUNTIME', ['src/extreme-runtime.js','src/visual-quality.js','src/music.js','src/impact-feedback.js','src/race-feedback.js','src/boat-details.js','src/crew-details.js','src/expedition-worlds.js','src/river-performance.js','src/river-skills.js'])
+embed('RR_STYLE', ['src/extreme-ui.css','src/expedition-worlds.css','src/river-skills.css','src/menu.css','src/mobile-view.css'])
+
+if '/* RR_DAY100_WORLD */' not in html:
+    replace('RRInitControls();RRDossier();', '/* RR_DAY100_WORLD */RRInitControls();RRInitExpedition();RRDossier();')
+    replace('tt=new ut(z,it);if(p.add(tt)', 'tt=new ut(z,RRWaterMaterial(it,Wn(g+100)?.courseId||"sogi"));if(p.add(tt)')
+    replace('return f={start:g,end:d,banks:R,treeData:L,waterUniforms:Ke,mistMaterials:Ue,sideFalls:Te}', 'const regional=RRRegionalScenery(p,g,d,v);return f={start:g,end:d,banks:R,treeData:L,waterUniforms:Ke,mistMaterials:Ue,sideFalls:Te,regional}')
+    replace('RRAnimateAllCrew(),Xt.render(Ft,nn)', 'RRAnimateAllCrew(),RRUpdateScenery(pt,r),Xt.render(Ft,nn)')
+    # The race setup calls cc() before choosing its final course. Avoid a stray first-course note.
+    replace('function cc(n=0){RRMusicReset();', 'function cc(n=0,setupRace=false){RRMusicReset();RRMusic.defer=setupRace;')
+    replace('cc(r),Xn=ic(', 'cc(r,true),Xn=ic(')
+    replace('RRResetBoosts(n,r,t),RRMusicSync(true)', 'RRResetBoosts(n,r,t),RRMusic.defer=false,RRMusicSync(true)')
+    replace('music:RRMusicStatus() /* RR_MUSIC_STATUS */', 'crew:RRCrewManifest(U),world:Xn.regional,music:RRMusicStatus() /* RR_MUSIC_STATUS */')
+    replace('build:"6.5-hull-quality"', 'build:"6.6-day100-expedition"')
+    # Vegetation must support the dry canyon silhouette, not fill it with rainforest shrubs.
+    replace('let M=Math.ceil((d-g)*.15)', 'let M=Math.ceil((d-g)*(Wn(g+100)?.courseId==="zambezi"?.035:.15))')
+    replace('p.add(H);let z=new ct', 'H.visible=Wn(g+100)?.courseId!=="zambezi";p.add(H);let z=new ct')
+if '/* RR_SKILLS_V67 */' not in html:
+    replace('/* RR_DAY100_WORLD */RRInitControls();RRInitExpedition();RRDossier();', '/* RR_DAY100_WORLD */ /* RR_SKILLS_V67 */RRInitControls();RRInitExpedition();RRInitSkills();RRDossier();')
+    replace('function yf(n,e,t,i,s){', 'function RRBaseAI(n,e,t,i,s){')
+    replace('let V=yf(z,Ui,', 'let V=RRSmartAI(z,Ui,')
+    # Tests and external debug tools use the same AI wrapper as the race loop.
+    replace('var zh=', 'function yf(n,e,t,i,s){return RRSmartAI(n,e,t,i,s)}var zh=')
+    replace('c=Wh(o.vesselId),c.group.scale', 'c=RRGetRival(o.vesselId),c.group.scale')
+    # Chunking preserves the old course-wide shrub density instead of duplicating it.
+    replace('let H=new ri(new Ei(1,1),new Lt({color:"#68834d",roughness:.95}),340);for(let Q=0;Q<340;Q++)', 'let shrubs=Math.max(1,Math.ceil((d-g)*340/11635)),H=new ri(new Ei(1,1),new Lt({color:"#68834d",roughness:.95}),shrubs);for(let Q=0;Q<shrubs;Q++)')
+    replace('function ip(){requestAnimationFrame(ip);', 'function ip(){requestAnimationFrame(ip);RRPerfBegin();')
+    replace('let s=["playing","countdown","won","lost"].includes(U.phase)', 'RRPerfMark("simulation");let s=["playing","countdown","won","lost"].includes(U.phase)')
+    replace('RRUpdateScenery(pt,r),Xt.render(Ft,nn),Ev(nn,i)', 'RRUpdateScenery(pt,r),RRUpdateSkills(Mt?0:e),RRPerfMark("scene"),Xt.render(Ft,nn),RRPerfMark("render"),Ev(nn,i)')
+    replace('for(let P of L){RRRaceEvent(P);', 'for(let P of L){RRSkillEvent(P);RRRaceEvent(P);')
+    replace('r.phase!=="playing"||a.phase!=="playing"', 'r.phase!=="playing"||a.phase!=="playing"||r.capsized||a.capsized')
+    replace('r.phase!=="playing")continue;let a=At(r.vesselId)', '(r.phase!=="playing"||r.capsized))continue;let a=At(r.vesselId)')
+    replace('r===o||o.phase!=="playing"', 'r===o||o.phase!=="playing"||o.capsized')
+    replace('build:"6.6-day100-expedition"','build:"6.7-river-skills"')
+    replace('crew:RRCrewManifest(U),world:Xn.regional,', 'capsized:!!U.capsized,recoveryTaps:U.recoveryTaps||0,capsizes:U.capsizeCount||0,cutbacks:U.cutbacks||0,surfChain:U.surfChain||0,route:U.routeLane,performance:RRPerformanceReport(),crew:RRCrewManifest(U),world:Xn.regional,')
+if '/* RR_CHUNK_DETAILS_V67 */' not in html:
+    replace('/* RR_SKILLS_V67 */','/* RR_CHUNK_DETAILS_V67 */ /* RR_SKILLS_V67 */')
+    replace('Ii.filter(Q=>Q.start>=g&&Q.end<=d&&', 'Ii.filter(Q=>Q.start+40>=g&&Q.start+40<d&&')
+    replace('P.group.visible=Math.abs(M.s-r)<145,Xh(P,pt,', 'P.group.visible=Math.abs(M.s-r)<145,P.group.visible&&Xh(P,pt,')
+if '/* RR_REGIONAL_SKILLS_V67 */' not in html:
+    replace('/* RR_SKILLS_V67 */','/* RR_REGIONAL_SKILLS_V67 */ /* RR_SKILLS_V67 */')
+    replace('wave:s.wave*r*(s.index===0?.4:1),force:s.force*r,lateral:c*r,roll:', 'wave:s.wave*r*(s.index===0?.4:1)*(s.courseId==="zambezi"&&s.type==="waves"?1.2:1),force:s.force*r,lateral:c*r*(s.courseId==="iguazu"&&s.type==="merge"?1.28:1),roll:')
+    replace('flowSeed:Yh,name:o.name,tactic:l,speedScale:1', 'flowSeed:Yh,name:o.name+" · "+RRAIProfiles[l%5],tactic:l,speedScale:1')
+if '/* RR_MENU_V68 */' not in html:
+    start=html.index('<div id="overlay">');end=html.index('<div id="result">',start)
+    html=html[:start]+'<!-- RR_MENU_BEGIN -->\n<!-- RR_MENU_END -->\n'+html[end:]
+    start=html.index('function yv(){');end=html.index('yv();var Ra=',start)
+    html=html[:start]+'/* RR_MENU_BEGIN */\n/* RR_MENU_END */\n'+html[end:]
+    replace('RRInitSkills();RRDossier();','RRInitSkills();RRInitMenu();RRInitMobileView();RRDossier();')
+    replace('ci.x+=Math.sin(pt*41)*b*.24','RRFrameMobileCamera(r,a,y,c,ci,Ma),ci.x+=Math.sin(pt*41)*b*.24')
+    replace('nn.fov=Yl(nn.fov,s?', 'nn.fov=Yl(nn.fov,U.capsized?RRCameraLayout(innerWidth,innerHeight,c,true).fov:s?')
+    replace('build:"6.7-river-skills"','build:"6.8-clear-river"')
+    replace('/* RR_SKILLS_V67 */','/* RR_MENU_V68 */ /* RR_SKILLS_V67 */')
+    replace('j("overlay").style.display="flex",','j("overlay").style.display="block",RRSetMenuScreen("title",false),')
+embed('RR_MENU','src/menu.js')
+html=re.sub(r'<!-- RR_MENU_BEGIN -->[\s\S]*?<!-- RR_MENU_END -->',lambda _:'<!-- RR_MENU_BEGIN -->\n'+(ROOT/'src/menu.html').read_text()+'\n<!-- RR_MENU_END -->',html,count=1)
+# Mobile camera code lives after the simulation; init does not allocate render resources.
+embed('RR_RUNTIME', ['src/extreme-runtime.js','src/visual-quality.js','src/music.js','src/impact-feedback.js','src/race-feedback.js','src/boat-details.js','src/crew-details.js','src/expedition-worlds.js','src/river-performance.js','src/river-skills.js','src/mobile-view.js'])
+if '/* RR_MENU_IDLE_V68 */' not in html:
+    replace('function ip(){requestAnimationFrame(ip);RRPerfBegin();', 'function ip(){requestAnimationFrame(ip);/* RR_MENU_IDLE_V68 */if(Ff&&RRMenuReady&&U.phase==="ready"&&!Bt){pv.getDelta();return;}RRPerfBegin();')
+path.write_text(html.rstrip()+'\n')
 print(f'Embedded extreme sources: {path.stat().st_size:,} bytes')
+
 

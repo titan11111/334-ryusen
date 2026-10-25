@@ -1,6 +1,6 @@
 // RYUSEN EXTREME. Pure simulation; embedded by tools/update_extreme.py.
 // Distances and speed are game units, not measured white-water speeds.
-var RRHulls = Object.create(null);
+var RRHulls = Object.create(null),RRWorldHulls=new WeakMap();
 // A 1.2x effective hull capacity, displayed as the same familiar 0–100% meter.
 var RRDurabilityMultiplier = 1.2;
 function RREaseOpeningRocks(rocks) {
@@ -13,7 +13,19 @@ function RREaseOpeningRocks(rocks) {
     rock.offset=side*Math.max(5.6,rt(rock.s)*.5-rock.r-1.1);last.set(course.id,distance);return true;
   });
 }
-var RRRawRocks=Bh;Bh=function(){return RREaseOpeningRocks(RRRawRocks());};
+var RRRawRocks=Bh;Bh=function(){
+  const rocks=RREaseOpeningRocks(RRRawRocks());
+  for(const course of Pn){
+    // Central rocks make the fast current a real choice, with a clear bank passage.
+    for(let s=course.start+2900;s<course.finish-600;s+=1450){
+      if(Ln.some(f=>Math.abs(f.start-s)<180)||Wt.some(v=>Math.abs(v.s-s)<160))continue;
+      rocks.push({s,offset:0,r:1.2,scaleY:1.2,seed:.37,hit:false});
+    }
+  }
+  for(const rock of rocks){const route=Pn.map(c=>RRRouteAt(rock.s,c.id)).find(r=>r&&rock.s>=r.start&&rock.s<=r.end);
+    if(route&&Math.abs(rock.offset-route.lanes[0].offset)<rock.r+2.4)rock.offset=route.lanes[0].offset-route.side*(rock.r+3);}
+  return rocks.sort((a,b)=>a.s-b.s);
+};
 function RROpening(state){return state.race&&!state.practice&&state.time<30;}
 var RRBoostItems=[];
 function RRResetBoosts(courseId,start=0,practice=false) {
@@ -65,8 +77,14 @@ function RRGetHull(state) {
 function RRWorldHull(state,s=state.s,offset=state.offset) {
   const yaw=-Math.atan2(Fe(s+2)-Fe(s-2),4)
     -(state.vesselId==='wood'&&state.tactic===undefined?0:Math.atan2(state.vx,state.speed)*.4)+(state.spin||0)+(state.impactYaw||0);
-  const cos=Math.cos(yaw),sin=Math.sin(yaw),center=Fe(s)+offset;
-  return RRGetHull(state).map(([x,z])=>[center+x*cos+z*sin,-s-x*sin+z*cos]);
+  const cos=Math.cos(yaw),sin=Math.sin(yaw),center=Fe(s)+offset,hull=RRGetHull(state);
+  // Reuse transforms for bank checks, forecasts and contact tests within a step.
+  let cache=RRWorldHulls.get(state);
+  if(!cache||cache.hull!==hull){cache={hull,points:hull.map(()=>[0,0])};RRWorldHulls.set(state,cache);}
+  if(cache.s===s&&cache.offset===offset&&cache.yaw===yaw)return cache.points;
+  cache.s=s;cache.offset=offset;cache.yaw=yaw;
+  for(let i=0;i<hull.length;i++){const [x,z]=hull[i];cache.points[i][0]=center+x*cos+z*sin;cache.points[i][1]=-s-x*sin+z*cos;}
+  return cache.points;
 }
 function RRHitsRock(state,rock,fromS=state.s,fromOffset=state.offset) {
   const distance=Math.hypot(state.s-fromS,state.offset-fromOffset);
@@ -75,14 +93,13 @@ function RRHitsRock(state,rock,fromS=state.s,fromOffset=state.offset) {
   const cx=Fe(rock.s)+rock.offset,cz=-rock.s;
   for(let step=0;step<=steps;step++){
     const t=step/steps;
-    const poly=RRWorldHull(state,fromS+(state.s-fromS)*t,fromOffset+(state.offset-fromOffset)*t)
-      .map(p=>[(p[0]-cx)/rx,(p[1]-cz)/rz]);
+    const poly=RRWorldHull(state,fromS+(state.s-fromS)*t,fromOffset+(state.offset-fromOffset)*t);
     let inside=false;
     for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-      const a=poly[j],b=poly[i];
-      if((a[1]>0)!==(b[1]>0)&&0<(b[0]-a[0])*(-a[1])/(b[1]-a[1])+a[0])inside=!inside;
-      const dx=b[0]-a[0],dz=b[1]-a[1],u=_f(-(a[0]*dx+a[1]*dz)/(dx*dx+dz*dz||1));
-      if((a[0]+u*dx)**2+(a[1]+u*dz)**2<=1)return true;
+      const ax=(poly[j][0]-cx)/rx,az=(poly[j][1]-cz)/rz,bx=(poly[i][0]-cx)/rx,bz=(poly[i][1]-cz)/rz;
+      if((az>0)!==(bz>0)&&0<(bx-ax)*(-az)/(bz-az)+ax)inside=!inside;
+      const dx=bx-ax,dz=bz-az,u=_f(-(ax*dx+az*dz)/(dx*dx+dz*dz||1));
+      if((ax+u*dx)**2+(az+u*dz)**2<=1)return true;
     }
     if(inside)return true;
   }
@@ -96,11 +113,104 @@ function RRBankOverlap(state) {
   }
   return {penetration,side};
 }
+// Three navigable currents share the same river bed. Choice changes progress and risk.
+function RRRouteAt(s,courseId) {
+  const course=js(courseId),local=s-course.start-2700;
+  if(local<0||s>course.finish-500)return null;
+  const index=Math.floor(local/1450),start=course.start+2700+index*1450;
+  if(s>start+850)return null;
+  const half=rt(s)*.5,side=index%2?1:-1;
+  return {id:courseId+':'+index,start,end:start+850,side,
+    lanes:[{id:'bank',name:'岸側・安全迂回',offset:side*half*.64,factor:.90},
+      {id:'main',name:'中央・岩間の速流',offset:0,factor:1.10},
+      {id:'outer',name:'外周・横流れ',offset:-side*half*.56,factor:1.04}]};
+}
+function RRReadRoute(n) {
+  const route=n.race?RRRouteAt(n.s,n.courseId):null;
+  if(!route){n.routeId=null;n.routeLane=null;return 1;}
+  const lane=route.lanes.reduce((a,b)=>Math.abs(a.offset-n.offset)<Math.abs(b.offset-n.offset)?a:b);
+  n.routeId=route.id;n.routeLane=lane.id;n.routeName=lane.name;
+  return 1+(lane.factor-1)*Math.min(1,(n.s-route.start)/60,(route.end-n.s)/60);
+}
+function RRDropAdvice(n) {
+  const speed=Math.max(1,n.speed),fall=Ln.find(f=>f.end>=n.s&&f.start-n.s<Math.max(150,speed*6));
+  if(!fall)return null;
+  const falling=n.s>=fall.start,seconds=Math.max(0,(fall.start-n.s)/speed);
+  return {id:fall.id,name:fall.name,height:fall.height,distance:Math.max(0,fall.start-n.s),seconds,
+    landingSeconds:Math.max(0,(fall.end-n.s)/speed),stage:falling?'landing':seconds<2?'edge':'approach',
+    action:falling?'Bを離して R：着水まで踏ん張る':seconds<2?'Bで減速 → 落下したら R':'Bで減速・体力を温存 → 着水は R'};
+}
+function RRCapsize(n,events,source) {
+  RRStopBoost(n);n.capsized=true;n.capsizeCount=(n.capsizeCount||0)+1;
+  n.recoveryTaps=0;n.recoveryGoal=10;n.capStrokeHeld=false;n.capsizeAge=0;
+  n.capsizeCause=source;n.hp=0;n.vx*=.2;n.speed=Math.min(n.speed,8);n.surfChain=0;n.combo=0;
+  n.bracing=false;n.braking=false;
+  // The rescue team returns the crew together; the penalty is time and position.
+  n.pax?.forEach(p=>p.st=0);n.passengers=n.totalPassengers;n.lostPax=0;
+  events.push({type:'capsize',source,goal:n.recoveryGoal});
+}
+function RRRecoverCapsize(n,e,input,events) {
+  n.capsizeAge+=e;n.bracing=false;n.braking=false;
+  n.speed+=(5-n.speed)*Math.min(1,e*3);n.s=Math.min(n.finishS-1,n.s+n.speed*e);
+  n.offset*=Math.exp(-e*.3);n.stamina=Math.min(100,n.stamina+e*14);
+  const tap=!!input.stroke&&!n.capStrokeHeld;n.capStrokeHeld=!!input.stroke;
+  if(tap){n.recoveryTaps++;events.push({type:'righting',taps:n.recoveryTaps,goal:n.recoveryGoal});}
+  if(n.recoveryTaps>=n.recoveryGoal){
+    n.capsized=false;n.hp=55;n.immunity=2.5;n.recovery=.3;n.capsize=0;n.speed=12;
+    n.landedDrops=Ln.filter(f=>f.end<=n.s).map(f=>f.id);n.activeDrop=-1;
+    n.strokeHeld=true;n.lastStroke=n.time;n.lastDamage=null;
+    events.push({type:'righted',penalty:n.capsizeAge});
+  }
+  return events;
+}
+function RRSkillStep(n,e,input,flow,rocks,events) {
+  n.turnCooldown=Math.max(0,(n.turnCooldown||0)-e);
+  if(n.braking){
+    if(!n.wasBraking){n.turnEntrySpeed=n.speed;n.turnBrakeTime=0;n.turnArmed=false;}
+    n.turnBrakeTime+=e;
+    const hazard=rocks.some(r=>r.s>n.s&&r.s-n.s<Math.max(90,n.speed*2)&&Math.abs(r.offset-n.offset)<r.r+4);
+    if(n.turnBrakeTime>=.12&&n.turnBrakeTime<1.2&&Math.abs(input.x)>.45&&(hazard||Math.abs(Fv(n.s+25)-Fv(n.s))>.06)){
+      n.turnArmed=true;n.turnSide=Math.sign(input.x);n.turnWindow=n.time+.8;
+    }
+  }
+  if(!n.braking&&!n.bracing&&n.turnArmed&&n.time<=n.turnWindow&&input.stroke&&Math.sign(input.x)===n.turnSide&&!(n.turnCooldown>0)){
+    n.speed=Math.max(n.speed,n.turnEntrySpeed*.9);n.vx+=n.turnSide*2.5;
+    n.surge=Math.min(7,(n.surge||0)+2);n.cutbacks=(n.cutbacks||0)+1;n.turnCooldown=3;n.turnArmed=false;
+    events.push({type:'cutback'});
+  }
+  if(n.time>n.turnWindow)n.turnArmed=false;
+  n.wasBraking=n.braking;
+  const phase=((n.s*Math.PI*2/flow.period)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+  n.wavePhase=phase;n.surfWindow=flow.wave>.30&&phase>.15&&phase<1.55;
+  if(input.stroke&&!n.braking&&!n.bracing&&n.surfWindow&&n.time-(n.lastSurfStroke??-10)>.32){
+    n.lastSurfStroke=n.time;n.surfArmedUntil=n.time+.6;
+  }
+}
+var RRAIProfiles=['直線勝負','岩間巧者','波乗り派','合流読み','引き波狙い'];
+function RRSmartAI(n,rocks,boats,width,fall){
+  if(n.capsized)return {x:0,stroke:Math.floor(n.time*6)%2===0,brake:false,brace:false};
+  const input=RRBaseAI(n,rocks,boats,width,fall),style=(n.tactic||0)%5;
+  n.aiProfile=RRAIProfiles[style];
+  const route=RRRouteAt(n.s+55,n.courseId),near=rocks.some(r=>r.s>n.s-5&&r.s<n.s+100&&Math.abs(r.offset-n.offset)<r.r+3);
+  if(route&&!near&&!fall){
+    const lane=route.lanes[style===0||style===1?1:style===3?2:0];
+    const leader=style===4?boats.filter(b=>b!==n&&!b.capsized&&b.s>n.s+6&&b.s<n.s+35).sort((a,b)=>a.s-b.s)[0]:null;
+    const target=leader?.offset??lane.offset;
+    if(!rocks.some(r=>r.s>n.s&&r.s<n.s+130&&Math.abs(r.offset-target)<r.r+2.5))
+      input.x=_f((target-n.offset)*.8-n.vx*.35,-1,1);
+    n.plannedLane=leader?'wake':lane.id;
+  }
+  const drop=RRDropAdvice(n);
+  if(drop&&n.stamina>10){input.brake=drop.stage!=='landing'&&drop.seconds<2.4&&n.speed>34;input.brace=drop.stage==='landing';}
+  if(style===2&&n.surfWindow&&n.stamina>20&&!input.brace&&!input.brake&&n.time-(n.lastStroke??-10)>.35)input.stroke=true;
+  return input;
+}
 function kh(n, e, input, rocks) {
   if (n.phase !== 'playing') return [];
   const events = [], previous = n.s, previousOffset=n.offset, craft = At(n.vesselId);
   const touring = n.mode === 'scenic', multiplier = touring ? 1 : 3.25;
   n.time += e;
+  if(n.capsized){if(n.race&&n.tactic===undefined)RRAdvanceBoosts(n,e);return RRRecoverCapsize(n,e,input,events);}
   for (const key of ['immunity', 'captionT', 'landing', 'reaction'])
     n[key] = Math.max(0, (n[key] || 0) - e);
   n.shake *= Math.exp(-e * 5);
@@ -121,6 +231,8 @@ function kh(n, e, input, rocks) {
   if (n.brakeImpulse) {if (n.braking) n.speed *= .88; n.brakeImpulse=false;}
   n.stamina = _f(n.stamina + e * (n.bracing ? -11 : n.braking ? -17 : n.race ? 8 : 15), 0, 100);
   const flow = un(n.s, n.offset, n.time, n.flowSeed || 0);
+  const routeFactor=RRReadRoute(n);
+  RRSkillStep(n,e,input,flow,rocks,events);
   n.flowLateral = flow.lateral;
   n.waveImpact = Math.max(0, Math.sin(n.s * Math.PI * 2 / flow.period));
   const technique = n.race ? xf(n, e, {...input, stroke:input.stroke && !n.bracing && !n.braking}, flow, events) : 0;
@@ -130,16 +242,20 @@ function kh(n, e, input, rocks) {
   const bend = (Fv(n.s + 9) - Fv(n.s - 9)) * n.speed * .5;
   const target = (n.race ? Math.max(8, flow.speed - 1.5 + technique + ga(n.s) * 3)
     : (touring ? 9 : 12.4) + er(n.s) * (touring ? 3.4 : 7)) * multiplier
-    * Math.pow(craft.speed, .18) * (n.speedScale || 1) + (n.wakeBoost || 0)
+    * Math.pow(craft.speed, .18) * (n.speedScale || 1) * routeFactor + (n.wakeBoost || 0)
     + (touring ? 0 : narrowing * 9 + slope * 6);
   const desired = n.braking ? Math.max(9, target * .35) : target*(n.boostTime>0?2:1);
   n.speed += (desired - n.speed) * Math.min(1, e * (n.braking ? 4.8 : 1.7));
   const paddleSurf=opening&&flow.wave>.12&&(n.strokeThrust||0)>.05;
   if ((flow.wave > .75||paddleSurf) && n.waveImpact > .94 && n.time-(n.lastWave || -10)>1.5) {
     n.lastWave=n.time; n.reaction=Math.max(n.reaction,.4);
-    if(n.bracing||paddleSurf){n.surfCount=(n.surfCount||0)+1;n.surge=Math.min(7,(n.surge||0)+1.2);}
-    else {n.speed*=.93;n.shake=Math.max(n.shake,.3);}
-    events.push({type:'wave',braced:n.bracing||paddleSurf,surf:n.bracing||paddleSurf});
+    const timed=n.time<=(n.surfArmedUntil||-1),saved=n.bracing||paddleSurf||timed;
+    if(saved){
+      n.surfCount=(n.surfCount||0)+1;n.surge=Math.min(7,(n.surge||0)+1.2);
+      if(timed){n.surfChain=n.time-(n.lastChainWave??-10)<4?(n.surfChain||0)+1:1;n.lastChainWave=n.time;
+        n.speed+=Math.min(5,n.surfChain)*.8;n.bestSurfChain=Math.max(n.bestSurfChain||0,n.surfChain);}
+    }else {n.speed*=.93;n.shake=Math.max(n.shake,.3);n.surfChain=0;}
+    events.push({type:'wave',braced:saved,surf:saved,chain:timed?n.surfChain:0});
   }
   const control = (n.bracing ? .38 : n.braking ? 1.5 : 1) * (touring ? 1 : 2.1);
   n.vx += (input.x * 13.5 * craft.turn * control
@@ -172,6 +288,7 @@ function kh(n, e, input, rocks) {
   for (const fall of Ln) {
     if (previous < fall.start && n.s >= fall.start) {
       n.activeDrop = fall.id; n.lastFall = fall.start;
+      n.dropEntrySpeed=n.speed;
       events.push({type:'fall', drop:fall});
     }
     if (previous < fall.end && n.s >= fall.end && !n.landedDrops.includes(fall.id)) {
@@ -179,6 +296,7 @@ function kh(n, e, input, rocks) {
       n.shake = Math.max(n.shake, fall.height / 15);
       if (n.bracing) {
         n.surge = Math.min(7, (n.surge || 0) + 2); n.safeDrops = (n.safeDrops || 0) + 1;
+        n.lastLandingQuality=(n.dropEntrySpeed||n.speed)<40?'soft':'braced';
       } else if (!touring) damage(fall.height * 3 + n.speed * .28, 'fall');
       events.push({type:'landing', drop:fall, braced:n.bracing});
     }
@@ -210,8 +328,9 @@ function kh(n, e, input, rocks) {
     }
   }
   n.danger = RRforecast(n, rocks);
+  n.dropWarning=RRDropAdvice(n);
   if (n.hp <= 0 || (n.passengers === 0 && !n.pax?.some(q => q.st === 1))) {
-    n.phase = 'lost'; events.push({type:'lost'});
+    RRCapsize(n,events,n.lastDamage||'crew');
   } else if (n.s >= n.finishS) {
     n.s = n.finishS; n.finishTime = n.time; n.phase = 'won';
     n.pax?.forEach(q => {if (q.st === 1) {q.st = 2; n.lostPax++;}});
@@ -273,4 +392,5 @@ function RRforecast(state, rocks) {
   }
   return best;
 }
+
 

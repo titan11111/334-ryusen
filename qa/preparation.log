@@ -1,0 +1,6 @@
+PASS preparation yields between real terrain chunks and shares water clocks including vortex patches
+PASS retry reuses prepared terrain without rebuilding it
+PASS returning to menu restores the original terrain and its uniforms
+PASS course switch disposes the old terrain and bounds rendered chunks
+PASS telemetry separates start and boost frame intervals without claiming GPU timings
+{"preparationChecks":5,"paints":50,"compiles":5,"waterMeshes":25}

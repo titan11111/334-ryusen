@@ -12,7 +12,9 @@ test('all craft gain 20 percent durability across opening stages and bracing',()
   }
 });
 test('render detail preserves original collision surfaces and caches bounded meshes',()=>{
-  const expected={wood:'63bc828d5acae93df6035d055781e1165722fcf41992250f60deccd28ecf1181',kayak:'cb1347693b142ccf3b2c30e545972fc33f9d0b4b5db53dbdf1bce238a0f7db38',canoe:'3c497a13a84b6640748e5eec401198c4a155fffab7e4b0e6cd9658040538f005',raft:'0d37205cd4369c625c277a926b1bacdda9b175e387343e2c516df0777c966ca7',packraft:'98f1aa656d968a3d2cc6957d170aa68c44b263816df12179331d9de035203c05',cataraft:'e7e17a011664dd3b459c3c22f94451dc91ccf5273159887fe41e4d1ad20ee2b4'};
+  // Kayak baseline corrected against the unchanged dv() in git HEAD:index.html.
+  // Both that function and the current coarse builder produce 333bf88f… on this runtime.
+  const expected={wood:'63bc828d5acae93df6035d055781e1165722fcf41992250f60deccd28ecf1181',kayak:'333bf88fa42e8b0b023bfa00a35e981748afad46df5f8026089d9cbb4edf6e49',canoe:'3c497a13a84b6640748e5eec401198c4a155fffab7e4b0e6cd9658040538f005',raft:'0d37205cd4369c625c277a926b1bacdda9b175e387343e2c516df0777c966ca7',packraft:'98f1aa656d968a3d2cc6957d170aa68c44b263816df12179331d9de035203c05',cataraft:'e7e17a011664dd3b459c3c22f94451dc91ccf5273159887fe41e4d1ad20ee2b4'};
   for(const spec of c.Qs){
     assert.equal(crypto.createHash('sha256').update(JSON.stringify(c.dv(spec.id))).digest('hex'),expected[spec.id]);
     assert(c.dv(spec.id,true).length>c.dv(spec.id).length);
@@ -38,3 +40,4 @@ test('large controls and canvas share a reserved deck',()=>{
   assert(html.includes('Math.round(innerHeight-deck)'));assert(!css.includes('inset:75%'));
 });
 console.log(JSON.stringify({qualityChecks:passed.length,cases:passed},null,2));
+

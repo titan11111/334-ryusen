@@ -77,16 +77,16 @@ test('reinforced full hull survives one large landing; damaged hull still needs 
   c.kh(a,1/60,{x:0},[]);c.kh(b,1/60,{x:0,brace:true},[]);
   assert.equal(a.phase,'playing');assert(a.hp<20);assert.equal(b.phase,'playing');assert(b.hp>65);
   const damaged=state('iguazu');damaged.time=45;damaged.s=fall.end-.2;damaged.speed=75;damaged.hp=80;
-  c.kh(damaged,1/60,{x:0},[]);assert.equal(damaged.phase,'lost');
+  c.kh(damaged,1/60,{x:0},[]);assert.equal(damaged.phase,'playing');assert(damaged.capsized);
 });
 test('danger forecast gives direction and time before collision',()=>{
   const n=state();n.speed=65;
   const d=c.RRforecast(n,[{s:n.s+95,offset:0,r:2}]);
   assert.equal(d.kind,'rock');assert(d.seconds>1&&d.seconds<2);assert(d.action.includes('左'));
 });
-test('dead boats cannot win on the finish line',()=>{
+test('broken boats capsize and cannot win on the finish line',()=>{
   const n=state();n.s=n.finishS-.05;n.hp=0;const ev=c.kh(n,1/60,{x:0},[]);
-  assert.equal(n.phase,'lost');assert(!ev.some(e=>e.type==='won'));
+  assert.equal(n.phase,'playing');assert(n.capsized);assert(!ev.some(e=>e.type==='won'));
 });
 test('AI survives every course with the shipped hazards',()=>{
   for(const course of ['sogi','zambezi','iguazu']){
@@ -159,4 +159,5 @@ test('engine meshes initialize from the shipped Three.js classes',()=>{
 });
 console.log(JSON.stringify({passed:reports.length,cases:reports},null,2));
 module.exports={c,state,html};
+
 

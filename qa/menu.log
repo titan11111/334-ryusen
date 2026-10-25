@@ -1,0 +1,6 @@
+PASS start screen opens course selection; navigation uses one visible panel and a fixed launch action
+PASS all three courses and six boats survive selection, back navigation and the actual launch binding
+PASS keyboard selection cycles all courses and optional lore failures cannot cancel selection
+PASS help is a separate compact dialog and the old field card cannot enlarge the new menu
+PASS portrait and landscape phone projections keep the boat and 20–50m obstacles in view
+{"menuChecks":5,"launchCombinations":18,"projectionConfigurations":30,"nativeIOS":"NOT_TESTED"}

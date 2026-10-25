@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: shipping HTML contains music source, start/resume hooks and all four real files
+ok 1 - shipping HTML contains music source, start/resume hooks and all four real files
+  ---
+  duration_ms: 2.11825
+  type: 'test'
+  ...
+# Subtest: countdown starts one loop; rendering never replays an active track
+ok 2 - countdown starts one loop; rendering never replays an active track
+  ---
+  duration_ms: 3.375125
+  type: 'test'
+  ...
+# Subtest: three courses and victory select correct tracks; retirement stops playback
+ok 3 - three courses and victory select correct tracks; retirement stops playback
+  ---
+  duration_ms: 0.395292
+  type: 'test'
+  ...
+# Subtest: pause, mute, hidden tab and menu stop playback; resume preserves position
+ok 4 - pause, mute, hidden tab and menu stop playback; resume preserves position
+  ---
+  duration_ms: 1.83575
+  type: 'test'
+  ...
+# Subtest: retry starts the same course from the beginning
+ok 5 - retry starts the same course from the beginning
+  ---
+  duration_ms: 0.329708
+  type: 'test'
+  ...
+# Subtest: autoplay rejection waits for explicit retry and then recovers
+ok 6 - autoplay rejection waits for explicit retry and then recovers
+  ---
+  duration_ms: 0.758542
+  type: 'test'
+  ...
+# Subtest: missing media does not cause per-frame retries and sound ON reloads it
+ok 7 - missing media does not cause per-frame retries and sound ON reloads it
+  ---
+  duration_ms: 0.517375
+  type: 'test'
+  ...
+# Subtest: local files bypass opaque-origin Web Audio routing and still mute
+ok 8 - local files bypass opaque-origin Web Audio routing and still mute
+  ---
+  duration_ms: 0.268791
+  type: 'test'
+  ...
+# Subtest: saved mute survives retry while first run enables music after a start gesture
+ok 9 - saved mute survives retry while first run enables music after a start gesture
+  ---
+  duration_ms: 0.436625
+  type: 'test'
+  ...
+# Subtest: race setup defers the temporary first course and plays only the selected soundtrack
+ok 10 - race setup defers the temporary first course and plays only the selected soundtrack
+  ---
+  duration_ms: 0.813334
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.8195

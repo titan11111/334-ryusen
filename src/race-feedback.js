@@ -25,6 +25,7 @@ function RRRaceEvent(event) {
   if(event.type==='wave'&&event.surf&&!RRFx.openingSurfShown){RRFx.openingSurfShown=true;mn('波を捉えた！ SURF BOOST',1.3);}
 }
 function RRUpdateRaceFeedback(dt) {
+  RRMusicSync();
   RRFx.passPulse=Math.max(0,RRFx.passPulse-dt*2.8);
   const active=['playing','countdown'].includes(U.phase)&&!Mt,playing=U.phase==='playing'&&!Mt;
   if(U.time<.1){RRFx.openingComboShown=false;RRFx.openingSurfShown=false;}

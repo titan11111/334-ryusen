@@ -107,3 +107,4 @@ function RRInitBoatDetails() {
   if(!RRBoatBaseWh){RRBoatBaseWh=Wh;Wh=function(id){const view=RRBoatBaseWh(id);RRDecorateBoat(view.group,id);return view;};}
 }
 
+

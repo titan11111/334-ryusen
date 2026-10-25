@@ -1,0 +1,22 @@
+/* DAY 100 is confined to the menu and optional field guide. */
+body{--rr-world-accent:#bad9ca}
+body[data-expedition=zambezi]{--rr-world-accent:#f1bd79}
+body[data-expedition=iguazu]{--rr-world-accent:#8de0bc}
+body[data-expedition=zambezi] #overlay{background:linear-gradient(115deg,rgba(39,28,22,.95),rgba(38,38,30,.87))}
+body[data-expedition=iguazu] #overlay{background:linear-gradient(115deg,rgba(10,34,28,.96),rgba(10,38,35,.87))}
+.hero .eyebrow{color:var(--rr-world-accent);letter-spacing:.18em}
+#rrWorldCard{position:relative;overflow:hidden;border:1px solid #bfd9c231;border-radius:7px;margin:14px 0 10px;isolation:isolate}
+#rrWorldCard svg{display:block;width:100%;height:142px;object-fit:cover}
+.rr-world-copy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:15px;background:linear-gradient(0deg,#0b211df5,transparent 95%)}
+.rr-world-copy small,.rr-dialog-copy>small{font:10px/1.6 monospace;letter-spacing:.1em;color:var(--rr-world-accent)}
+.rr-world-copy b{font-size:17px;line-height:1.5;color:#f1f6df}
+.rr-world-copy button{margin-top:5px;padding:4px 0;color:var(--rr-world-accent);border:0;background:transparent;font-size:11px;cursor:pointer}
+#rrWorldDialog{position:fixed;inset:0;width:min(580px,calc(100vw - 28px));max-height:calc(100dvh - 40px);padding:0;border:1px solid #9bb89b66;border-radius:12px;color:#e2ebe0;background:#102721;overflow:auto;box-sizing:border-box;box-shadow:0 18px 80px #0009}
+#rrWorldDialog::backdrop{background:#04110dd9;backdrop-filter:blur(5px)}
+#rrWorldDialog>svg{display:block;width:100%;height:auto}
+#rrWorldDialog form{position:sticky;top:0;height:0;z-index:2}
+.rr-world-close{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;border:1px solid #d8ead16b;background:#0a241edc;color:#fff;font-size:25px;cursor:pointer}
+.rr-dialog-copy{padding:24px}.rr-dialog-copy h2{font-size:25px;margin:6px 0 14px;line-height:1.4}.rr-dialog-copy p{font-size:13px;line-height:1.9;color:#c1d3c6}
+.rr-world-tags{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.rr-world-tags span{padding:5px 9px;border:1px solid #83b69c55;border-radius:20px;font-size:11px;color:var(--rr-world-accent)}
+.rr-track{padding-top:14px;border-top:1px solid #c4d5c526}
+@media(max-width:600px){#rrWorldCard svg{height:125px}.rr-dialog-copy{padding:20px}.rr-dialog-copy h2{font-size:21px}.rr-world-copy b{font-size:16px}}

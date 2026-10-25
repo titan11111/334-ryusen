@@ -1,0 +1,16 @@
+{
+  "build": "6.8-clear-river",
+  "checks": {
+    "regression": 44,
+    "skills": 10,
+    "preparation": 5,
+    "music": 10,
+    "menu": 5
+  },
+  "total": 74,
+  "htmlSHA256": "1357b96b1c70e59e4f9eedd2b5e138c423283b2a4b7b892fa30e309ca0289c92",
+  "nativeIOS": "NOT_TESTED",
+  "realFPS_GPU": "NOT_TESTED",
+  "browser": "pending public deployment check",
+  "controller": "Titan Controller API 1 (unchanged)"
+}

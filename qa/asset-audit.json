@@ -1,0 +1,10 @@
+{
+  "htmlBytes": 814111,
+  "htmlGzipBytes": 232828,
+  "newRasterImageFiles": 0,
+  "musicBytes": 17131154,
+  "newMenuSVGAndMarkupBytes": 5408,
+  "menu3DRendering": "stops after first initialization frame",
+  "renderQuality": "same pixel ratio/antialiasing/hull detail",
+  "nativeFPS": "NOT_TESTED"
+}

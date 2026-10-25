@@ -114,7 +114,7 @@ function RRInput(base) {
 function RRPulse(state,dt,input) {
   if (RRC.impulse) {state.brakeImpulse=true;RRC.impulse=false;}
   const now=state.time;
-  if (input.actions.stroke && !input.actions.act && !input.actions.jump && now-RRC.lastRepeat>.48) {
+  if (!state.capsized && input.actions.stroke && !input.actions.act && !input.actions.jump && now-RRC.lastRepeat>.48) {
     if (!ds.length)ds.push({at:now});RRC.lastRepeat=now;
   }
   ds=ds.filter(p=>now-p.at<=.05);
@@ -159,5 +159,7 @@ function RRDossier() {
   const r=RRREGIONS[fr];
   const el=document.getElementById('rrDossier');
   if(el)el.innerHTML='<summary>現地を知る · 景観と装い</summary><b>'+r.title+'</b><p>'+r.text+'</p><p>'+r.culture+'</p><p>速度はゲーム内演出値。計測地形・流体解析に基づく再現ではありません。</p>';
+  if(typeof RRRenderExpedition==='function')RRRenderExpedition();
 }
+
 

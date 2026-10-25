@@ -1,0 +1,25 @@
+PASS hull failure capsizes once, never ends the race, and requires ten distinct taps
+PASS holding the ordinary paddle button cannot generate automatic recovery taps
+PASS rivals continue racing while a capsized player loses ground, including near the finish
+PASS AI also pays the capsize penalty and can right its boat
+PASS waterfall warning precedes the lip by six seconds, switches at the lip, and exposes brake/brace conflict
+PASS brake, steer and exit stroke create a bounded cutback only near a real hazard
+PASS three current routes trade speed for safety and central rocks leave the bank route open
+PASS timed rising-wave strokes build a surf chain; a missed wave breaks it
+PASS all five rivals expose their own tactics without hiding hazard avoidance
+PASS route guides are fixed pools and capsize poses pause, recover and respect reset
+{
+  "skillChecks": 10,
+  "cases": [
+    "hull failure capsizes once, never ends the race, and requires ten distinct taps",
+    "holding the ordinary paddle button cannot generate automatic recovery taps",
+    "rivals continue racing while a capsized player loses ground, including near the finish",
+    "AI also pays the capsize penalty and can right its boat",
+    "waterfall warning precedes the lip by six seconds, switches at the lip, and exposes brake/brace conflict",
+    "brake, steer and exit stroke create a bounded cutback only near a real hazard",
+    "three current routes trade speed for safety and central rocks leave the bank route open",
+    "timed rising-wave strokes build a surf chain; a missed wave breaks it",
+    "all five rivals expose their own tactics without hiding hazard avoidance",
+    "route guides are fixed pools and capsize poses pause, recover and respect reset"
+  ]
+}

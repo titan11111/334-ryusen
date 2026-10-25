@@ -12,4 +12,3 @@ const RIVER_WORLDS = {
 };
 const courseKey = Object.hasOwn(RIVER_WORLDS,new URLSearchParams(location.search).get('course')) ? new URLSearchParams(location.search).get('course') : 'sogi';
 const CW=RIVER_WORLDS[courseKey];
-

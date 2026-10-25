@@ -1,0 +1,120 @@
+PASS three separated courses retain 12 sections and five landings
+PASS steady flow is at least three times the previous target
+PASS swept collision hits rocks crossed in a fast step
+PASS all six actual hull models collide at bow, stern, and side
+PASS physical widths distinguish kayak and raft without arbitrary forgiveness
+PASS brace reduces collision damage and brake wins combined actions
+PASS reinforced full hull survives one large landing; damaged hull still needs bracing
+PASS danger forecast gives direction and time before collision
+PASS broken boats capsize and cannot win on the finish line
+AI sogi won 178 65 4
+AI zambezi won 173 62 3
+AI iguazu won 176 36 3
+PASS AI survives every course with the shipped hazards
+PASS A hold repeats at an accessible pace; B cancels A
+PASS three-frame input buffer fires as recovery ends and stale taps expire
+PASS engines spawn rarely, drift with water, and avoid falls and vortices
+PASS engine doubles speed for two seconds without stacking or extending
+PASS braking and impact cancel boosts immediately with no defensive bonus
+BOOST RACE sogi won 174 engines 2 HP 70
+BOOST RACE zambezi won 172 engines 1 HP 62
+BOOST RACE iguazu won 172 engines 1 HP 37
+PASS full courses with engines remain challenging three-minute races
+PASS engine meshes initialize from the shipped Three.js classes
+{
+  "passed": 17,
+  "cases": [
+    "three separated courses retain 12 sections and five landings",
+    "steady flow is at least three times the previous target",
+    "swept collision hits rocks crossed in a fast step",
+    "all six actual hull models collide at bow, stern, and side",
+    "physical widths distinguish kayak and raft without arbitrary forgiveness",
+    "brace reduces collision damage and brake wins combined actions",
+    "reinforced full hull survives one large landing; damaged hull still needs bracing",
+    "danger forecast gives direction and time before collision",
+    "broken boats capsize and cannot win on the finish line",
+    "AI survives every course with the shipped hazards",
+    "A hold repeats at an accessible pace; B cancels A",
+    "three-frame input buffer fires as recovery ends and stale taps expire",
+    "engines spawn rarely, drift with water, and avoid falls and vortices",
+    "engine doubles speed for two seconds without stacking or extending",
+    "braking and impact cancel boosts immediately with no defensive bonus",
+    "full courses with engines remain challenging three-minute races",
+    "engine meshes initialize from the shipped Three.js classes"
+  ]
+}
+PASS touch gestures are cancelled without creating extra gameplay actions
+PASS pointerdown gives immediate feedback once; fast second taps reach physics
+PASS cached joystick bounds avoid forced layout on repeated movement and reset safely
+PASS rock impacts generate contact coordinates, rearward displacement, yaw, and lateral knockback
+PASS impact audio combines a sharp attack with a bounded non-silent tail
+PASS contact spray, fragments and rings use bounded reusable pools
+PASS six detailed boat models preserve collision vertices and batch decorative trim
+PASS crew include diverse human appearances and aliens without duplicating decorations
+PASS thirteen situational reactions restore their neutral pose and preserve arm lengths
+PASS legacy wood boat, captain, and all actual NPC builders retain valid crew poses
+{
+  "responseChecks": 10,
+  "cases": [
+    "touch gestures are cancelled without creating extra gameplay actions",
+    "pointerdown gives immediate feedback once; fast second taps reach physics",
+    "cached joystick bounds avoid forced layout on repeated movement and reset safely",
+    "rock impacts generate contact coordinates, rearward displacement, yaw, and lateral knockback",
+    "impact audio combines a sharp attack with a bounded non-silent tail",
+    "contact spray, fragments and rings use bounded reusable pools",
+    "six detailed boat models preserve collision vertices and batch decorative trim",
+    "crew include diverse human appearances and aliens without duplicating decorations",
+    "thirteen situational reactions restore their neutral pose and preserve arm lengths",
+    "legacy wood boat, captain, and all actual NPC builders retain valid crew poses"
+  ]
+}
+PASS all craft gain 20 percent durability across opening stages and bracing
+PASS render detail preserves original collision surfaces and caches bounded meshes
+PASS high-density rendering respects pixel budgets and enables antialiasing
+PASS fictional course name replaces real name while saved record keys remain valid
+PASS large controls and canvas share a reserved deck
+{
+  "qualityChecks": 5,
+  "cases": [
+    "all craft gain 20 percent durability across opening stages and bracing",
+    "render detail preserves original collision surfaces and caches bounded meshes",
+    "high-density rendering respects pixel budgets and enables antialiasing",
+    "fictional course name replaces real name while saved record keys remain valid",
+    "large controls and canvas share a reserved deck"
+  ]
+}
+PASS opening rocks leave an initial runway, a wide center lane and large gaps
+PASS 4fps-equivalent opening survives six seconds and thirty seconds without input for all craft
+PASS holding A earns six real strokes and a surf success in every opening
+PASS opening impact protection fades into dangerous regular impacts
+PASS the actual race crossing detector drives strong passing and smaller losing feedback
+PASS FOV responds across the actual speed range and boost remains bounded
+PASS passing audio rises in pitch while loss feedback falls
+{
+  "raceFlowChecks": 7,
+  "total": 34,
+  "cases": [
+    "opening rocks leave an initial runway, a wide center lane and large gaps",
+    "4fps-equivalent opening survives six seconds and thirty seconds without input for all craft",
+    "holding A earns six real strokes and a surf success in every opening",
+    "opening impact protection fades into dangerous regular impacts",
+    "the actual race crossing detector drives strong passing and smaller losing feedback",
+    "FOV responds across the actual speed range and boost remains bounded",
+    "passing audio rises in pitch while loss feedback falls"
+  ]
+}
+PASS each course has a distinct water palette, flowing foam, and an original field-guide illustration
+PASS passenger identity controls the visible seat for every vessel and rescues return to that same seat
+PASS damped secondary motion is frame-rate independent and cannot explode on slow frames
+PASS body motion pauses with simulation time and retry resets secondary motion and rescue poses
+PASS anniversary field guide uses a dismissible native modal without blocking the race start
+{
+  "day100Checks": 5,
+  "cases": [
+    "each course has a distinct water palette, flowing foam, and an original field-guide illustration",
+    "passenger identity controls the visible seat for every vessel and rescues return to that same seat",
+    "damped secondary motion is frame-rate independent and cannot explode on slow frames",
+    "body motion pauses with simulation time and retry resets secondary motion and rescue poses",
+    "anniversary field guide uses a dismissible native modal without blocking the race start"
+  ]
+}
