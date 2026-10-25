@@ -50,7 +50,7 @@ function RRGetHull(state) {
 }
 function RRWorldHull(state,s=state.s,offset=state.offset) {
   const yaw=-Math.atan2(Fe(s+2)-Fe(s-2),4)
-    -(state.vesselId==='wood'&&state.tactic===undefined?0:Math.atan2(state.vx,state.speed)*.4)+(state.spin||0);
+    -(state.vesselId==='wood'&&state.tactic===undefined?0:Math.atan2(state.vx,state.speed)*.4)+(state.spin||0)+(state.impactYaw||0);
   const cos=Math.cos(yaw),sin=Math.sin(yaw),center=Fe(s)+offset;
   return RRGetHull(state).map(([x,z])=>[center+x*cos+z*sin,-s-x*sin+z*cos]);
 }
@@ -90,6 +90,8 @@ function kh(n, e, input, rocks) {
   for (const key of ['immunity', 'captionT', 'landing', 'reaction'])
     n[key] = Math.max(0, (n[key] || 0) - e);
   n.shake *= Math.exp(-e * 5);
+  n.impactYaw=(n.impactYaw||0)*Math.exp(-e*13);
+  n.knockback=Math.max(0,(n.knockback||0)-e);
   if (n.stamina <= 2) n.exhausted = true;
   if (n.stamina >= 28) n.exhausted = false;
   const active = !n.exhausted && n.stamina > 2;
@@ -141,8 +143,8 @@ function kh(n, e, input, rocks) {
     const reach=craft.length*.8+rock.r*1.5+1;
     const crossed = rock.s >= previous-reach && rock.s <= n.s+reach;
     if (crossed && n.immunity <= 0 && RRHitsRock(n,rock,previous,previousOffset)) {
-      rock.hit = true; n.vx += Math.sign(-dx || 1) * 5;
-      damage(16 + n.speed * .65, 'rock');
+      rock.hit = true;
+      damage(16 + n.speed * .65, 'rock',rock);
     }
     if (!rock.passed && ds < -rock.r - craft.halfHit) {
       rock.passed = true;
@@ -200,19 +202,36 @@ function kh(n, e, input, rocks) {
     events.push({type:'won'});
   }
   return events;
-  function damage(base, source) {
+  function damage(base, source,rock=null) {
+    const impactSpeed=n.speed,side=rock?(Math.sign(n.offset-rock.offset)||Math.sign(n.vx)||1):Math.sign(-n.offset)||1;
+    const force=_f(impactSpeed/65,.5,1.7);
+    let point=null,normal=null;
+    if(rock){
+      const rx=Fe(rock.s)+rock.offset,rz=-rock.s;
+      const nx=Fe(n.s)+n.offset-rx,nz=rock.s-n.s,len=Math.hypot(nx,nz)||1;
+      normal={x:nx/len,z:nz/len};
+      point={x:rx+normal.x*rock.r,y:$e(rock.s)+.45,z:rz+normal.z*rock.r*1.2};
+    }
     RRStopBoost(n);
     const amount = base * (touring ? .28 : 1) * (n.bracing ? .27 : 1) * craft.damage;
     n.hp = Math.max(0, n.hp - amount); n.hits++; n.reaction = 1;
     n.shake = Math.min(1.6, amount / 20); n.immunity = .65;
-    n.lastDamage = source; n.speed *= n.bracing ? .88 : .57;
+    n.lastDamage = source; n.speed *= source==='rock'?(n.bracing?.8:.43):(n.bracing?.88:.57);
+    if(rock){
+      const resistance=(n.bracing?.45:1)/Math.sqrt(craft.stability);
+      n.vx+=side*(7+Math.min(130,impactSpeed)*.045)*resistance;
+      n.offset+=side*.25*force*resistance;
+      n.s=Math.max(n.race?(n.raceStartS??js(n.courseId).start):0,n.s-.7*force*resistance);
+      n.impactYaw=-side*.13*force*resistance;n.knockback=.22;
+      const overlap=RRBankOverlap(n);n.offset-=overlap.side*overlap.penetration;
+    }
     n.surge = 0; n.combo = 0; n.recovery = n.bracing ? .3 : 1.2;
     let lost = 0;
     if (!touring && !n.bracing && amount > 28 && n.totalPassengers > 1) {
       const person = n.pax?.find(q => q.st === 0);
       if (person) {Object.assign(person,{st:1,s:n.s-2,o:n.offset+(person.id%2?1:-1)*2.3,t:0,sp:n.speed*.85}); n.passengers--; lost=1;}
     }
-    events.push({type:'impact',damage:amount,lost,source});
+    events.push({type:'impact',damage:amount,lost,source,point,normal,side,force,impactSpeed});
   }
 }
 

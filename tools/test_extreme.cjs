@@ -156,3 +156,4 @@ test('engine meshes initialize from the shipped Three.js classes',()=>{
   c.RRBoostItems=[];
 });
 console.log(JSON.stringify({passed:reports.length,cases:reports},null,2));
+module.exports={c,state,html};

@@ -1,5 +1,5 @@
 // Game-specific controller adapter. Titan Controller API 1 remains unchanged.
-var RRC = {keys:new Set(), pointers:new Map(), lastRepeat:-1, impulse:false};
+var RRC = {keys:new Set(), pointers:new Map(), lastRepeat:-1, impulse:false,buttons:new Map(),shown:new Map()};
 var RRBoostViews=[];
 function RRDrawBoosts() {
   const playing=['playing','countdown'].includes(U.phase)&&!Mt&&U.race;
@@ -31,6 +31,7 @@ function RRButtons() {
     const button=document.querySelector('[data-titan-action="'+name+'"]');
     button.innerHTML='<b>'+parts[0]+'</b><span>'+parts[1]+'</span><small>'+parts[2]+'</small>';
     button.setAttribute('aria-label',parts[0]+' '+parts[1]);
+    RRC.buttons.set(name,button);
   }
   const pad=document.querySelector('[data-titan-pad]');
   pad.insertAdjacentHTML('beforeend','<span class="rr-pad-label">操船</span>');
@@ -45,21 +46,31 @@ function RRAction() {
 }
 function RRFeedback() {
   const actions=RRAction();
-  document.querySelectorAll('[data-titan-action]').forEach(b=>{
-    b.classList.toggle('rr-pressed',actions.has(b.dataset.titanAction));
-    b.setAttribute('aria-pressed',actions.has(b.dataset.titanAction)?'true':'false');
+  RRC.buttons.forEach((b,name)=>{
+    const pressed=actions.has(name);if(RRC.shown.get(name)===pressed)return;
+    RRC.shown.set(name,pressed);b.classList.toggle('rr-pressed',pressed);
+    b.setAttribute('aria-pressed',pressed?'true':'false');
   });
 }
 function RRPress(name) {
+  const button=RRC.buttons.get(name);
+  if(button?.animate&&!RRFx.reduced)button.animate([{filter:'brightness(1.9)',transform:'translateY(5px) scale(.91)'},{filter:'brightness(1.1)',transform:'translateY(3px) scale(.97)'}],{duration:85});
   if (name==='stroke' && U.phase==='playing' && !Mt) {ds.push({at:U.time});RRC.lastRepeat=U.time;}
   if (name==='act') RRC.impulse=true;
-  // Sound is scheduled in the DOM input handler, subject to browser audio policy.
-  if (_n && Pt?.ctx?.state==='running') {
-    const osc=Pt.ctx.createOscillator(), gain=Pt.ctx.createGain(), now=Pt.ctx.currentTime;
-    osc.type='square'; osc.frequency.setValueAtTime(name==='act'?155:330,now);
-    gain.gain.setValueAtTime(.018,now);gain.gain.exponentialRampToValueAtTime(.001,now+.028);
-    osc.connect(gain);gain.connect(Pt.ctx.destination);osc.start(now);osc.stop(now+.03);
-  }
+  RRPlayFeedback(name,.22);
+  if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(name==='act'?12:8);
+}
+function RRGameTouchTarget(target) {
+  return ['playing','countdown'].includes(U.phase)&&!Mt&&!!(target?.id==='scene'||target?.closest?.('[data-titan-controls]')||target===document.body);
+}
+function RRTouchGuard(ev) {
+  if(RRGameTouchTarget(ev.target)&&ev.cancelable)ev.preventDefault();
+}
+function RRPointerDown(ev) {
+  const button=ev.target.closest?.('[data-titan-action]');
+  if(!button||(ev.pointerType==='mouse'&&ev.button!==0)||RRC.pointers.has(ev.pointerId))return;
+  if(ev.cancelable)ev.preventDefault();
+  const name=button.dataset.titanAction;RRC.pointers.set(ev.pointerId,name);RRPress(name);RRFeedback();
 }
 function RRInitControls() {
   // Capture only hull geometry: paddles, passengers and decorative arms never enlarge it.
@@ -69,20 +80,22 @@ function RRInitControls() {
     const geometry=view.group.children[0].geometry.attributes.position;
     RRRegisterHull(id,Array.from({length:geometry.count},(_,i)=>[geometry.getX(i)*1.2,geometry.getZ(i)*1.2]));
   }
+  RRInitBoatDetails();RRDecorateCrew(nu,'wood');
   RRButtons();
   const map={KeyF:'stroke',KeyZ:'stroke',KeyJ:'stroke',KeyE:'act',KeyX:'act',KeyK:'act',Space:'jump',KeyC:'jump'};
   addEventListener('keydown',ev=>{
-    if (!map[ev.code] || ev.metaKey || ev.ctrlKey || /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
+    if (!map[ev.code] || ev.metaKey || ev.ctrlKey || ev.altKey || /INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
+    if(!['playing','countdown'].includes(U.phase)||Mt)return;
     ev.preventDefault(); if (!RRC.keys.has(ev.code)) RRPress(map[ev.code]);
     RRC.keys.add(ev.code);RRFeedback();
   });
   addEventListener('keyup',ev=>{RRC.keys.delete(ev.code);RRFeedback();});
   const host=document.querySelector('[data-titan-controls]');
-  host.addEventListener('pointerdown',ev=>{
-    const button=ev.target.closest('[data-titan-action]');
-    if (!button || ev.pointerType==='mouse'&&ev.button!==0) return;
-    const name=button.dataset.titanAction;RRC.pointers.set(ev.pointerId,name);RRPress(name);RRFeedback();
-  },true);
+  host.addEventListener('pointerdown',RRPointerDown,{capture:true,passive:false});
+  // Pointer Events own gameplay. Touch handlers only cancel native gestures; they never fire actions.
+  for(const type of ['touchstart','touchmove','touchend','gesturestart','gesturechange','gestureend','dblclick','contextmenu'])
+    document.addEventListener(type,RRTouchGuard,{capture:true,passive:false});
+  host.addEventListener('click',ev=>{ev.preventDefault();ev.stopImmediatePropagation();},true);
   // Pointer capture stays with the original button; hit-testing implements thumb sliding.
   addEventListener('pointermove',ev=>{
     if (!RRC.pointers.has(ev.pointerId)) return;
@@ -105,11 +118,12 @@ function RRPulse(state,dt,input) {
     if (!ds.length)ds.push({at:now});RRC.lastRepeat=now;
   }
   ds=ds.filter(p=>now-p.at<=.05);
-  if (!ds.length || input.actions.act || input.actions.jump || (state.recovery||0)>.05
-      || now-(state.lastStroke??-10)<.24) return false;
+  if (!ds.length || input.actions.act || input.actions.jump
+      || now-(state.lastStroke??-10)<.10) return false;
   ds.shift();return true;
 }
 function RRUpdateHUD() {
+  RRPrimeFeedbackAudio();
   RRDrawBoosts();
   const active=['playing','countdown'].includes(U.phase)&&!Mt;
   const boost=document.getElementById('rrBoostMeter');

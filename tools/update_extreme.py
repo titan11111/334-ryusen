@@ -20,7 +20,8 @@ def replace(old, new, count=1):
 def embed(marker, source):
     global html
     start, end = f'/* {marker}_BEGIN */', f'/* {marker}_END */'
-    content = start + '\n' + (ROOT / source).read_text() + '\n' + end
+    sources=source if isinstance(source,list) else [source]
+    content = start + '\n' + '\n'.join((ROOT / item).read_text() for item in sources) + '\n' + end
     html = re.sub(re.escape(start) + r'[\s\S]*?' + re.escape(end), lambda _: content, html)
 
 if '/* RR_SIM_BEGIN */' not in html:
@@ -109,8 +110,27 @@ function RWwide(n){return n<12875?1:n<13100?1-.22*(n-12875)/225:n<24475?.78:n<24
     # Refresh dossier on course selection without depending on initialization order.
     replace('function Zh(){', 'function Zh(){if(typeof RRREGIONS!=="undefined")RRDossier();')
 
+if '/* RR_RESPONSE_V63 */' not in html:
+    replace('/* RR_RUNTIME_BEGIN */','/* RR_RESPONSE_V63 */\n/* RR_RUNTIME_BEGIN */')
+    replace('n.time-(n.lastStroke??-10)>.24','n.time-(n.lastStroke??-10)>.10')
+    replace('this.ctx=new e;','this.ctx=new e({latencyHint:"interactive"});')
+    replace('var Ra=170,','var Ra=384,')
+    replace('hs(65,1.4),kf(P.source,qn(P.damage/12,.65,1.5))','(RRImpactFeedback(P)||(hs(65,1.4),kf(P.source,qn(P.damage/12,.65,1.5))))')
+    replace('4)+(U.spin||0),qn','4)+(U.spin||0)+(U.impactYaw||0),qn')
+    replace('*.4+(e.spin||0),qn','*.4+(e.spin||0)+(e.impactYaw||0),qn')
+    replace('C=R<.8,b=U.shake;','C=R<.8,b=RRFx.reduced?0:U.shake;')
+    replace('ci.x+=Math.sin(pt*41)*b*.12,ci.y+=Math.cos(pt*37)*b*.12','ci.x+=Math.sin(pt*41)*b*.24,ci.y+=Math.cos(pt*37)*b*.18')
+    replace('Xt.render(Ft,nn),Ev(nn,i)','RRUpdateImpactVisuals(Mt?0:e),RRAnimateAllCrew(),Xt.render(Ft,nn),Ev(nn,i)')
+    replace('build:"6.2-engine"','build:"6.3-impact-crew"')
+    replace('"tg.334.race.extreme-v6.2."','"tg.334.race.extreme-v6.3."')
+    replace('"ryusen-race-extreme-v6.2-"','"ryusen-race-extreme-v6.3-"')
+
+controller=ROOT/'src/titan-controller.js'
+html=html.replace('n.time-(n.lastStroke??-10)>.10','n.time-(n.lastStroke??-10)>=.10')
+if controller.exists():
+    html=re.sub(r'(<script data-titan-controller="1">)[\s\S]*?(</script>)',lambda m:m[1]+'\n'+controller.read_text()+'\n'+m[2],html,count=1)
 embed('RR_SIM', 'src/extreme-simulation.js')
-embed('RR_RUNTIME', 'src/extreme-runtime.js')
+embed('RR_RUNTIME', ['src/extreme-runtime.js','src/impact-feedback.js','src/boat-details.js','src/crew-details.js'])
 embed('RR_STYLE', 'src/extreme-ui.css')
 path.write_text(html)
 print(f'Embedded extreme sources: {path.stat().st_size:,} bytes')
